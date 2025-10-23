@@ -9,7 +9,6 @@ from ..llm import OpenAIClient
 from ..logging import get_logger
 from ..schemas import SCTItem
 from ..validators import validate_sct_item
-from .utils import save_sct_item
 
 logger = get_logger(__name__)
 
@@ -126,10 +125,6 @@ class SCTGenerator:
                 )
                 for error in validation_result.errors:
                     logger.error(f"  - {error}")
-                # Still save the item but log that it failed validation
-                logger.warning(
-                    "Item will be saved despite validation errors for review"
-                )
             else:
                 logger.info("✓ Validation passed")
                 if validation_result.warnings:
@@ -138,10 +133,6 @@ class SCTGenerator:
                     )
                     for warning in validation_result.warnings:
                         logger.warning(f"  - {warning}")
-
-            # Automatically save the item
-            output_path = save_sct_item(sct_item)
-            logger.info(f"Item automatically saved to: {output_path}")
 
             return sct_item
 

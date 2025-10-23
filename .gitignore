@@ -12,6 +12,7 @@ venv/
 env/
 ENV/
 .venv
+poetry.lock
 
 # IDE
 .vscode/
@@ -28,6 +29,8 @@ dist/
 
 # Generated data
 data/generated/*.json
+data/validated/*.json
+data/validation_failed/*.json
 
 # Logs
 *.log

@@ -1,4 +1,4 @@
-"""SCT Generator module."""
+"""Generator module."""
 
 from .generate_sct import SCTGenerator, generate_sct_item
 from .utils import save_sct_item

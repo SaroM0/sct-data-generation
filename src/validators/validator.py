@@ -149,10 +149,8 @@ class SCTValidator:
             result.add_error("Question is required and cannot be empty")
             return
 
-        # Check for exact match with standard question
-        question_clean = question.strip()
-
         # Check for extra spaces
+        question_clean = question.strip()
         if question != question_clean:
             result.add_warning("Question has leading/trailing spaces")
 

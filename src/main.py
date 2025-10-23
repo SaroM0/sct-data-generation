@@ -61,7 +61,9 @@ def generate_scts(num_items: int, model: str, domains: List[str]) -> List[SCTIte
     logger.info("\nGeneration complete!")
     logger.info(f"  Successful: {len(generated_items)}/{num_items}")
     logger.info(f"  Failed: {failed_count}/{num_items}")
-    logger.info("  All items saved to: data/generated/")
+    logger.info("  All items: data/generated/")
+    logger.info("  Validated: data/validated/")
+    logger.info("  Failed validation: data/validation_failed/")
 
     return generated_items
 
@@ -105,7 +107,9 @@ def main() -> int:
     logger.info(f"  Number of SCTs: {settings.num_scts_to_generate}")
     logger.info(f"  Model: {settings.model}")
     logger.info(f"  Domains: {', '.join(domains)} ({len(domains)} total)")
-    logger.info("  Output directory: data/generated/")
+    logger.info("  All items: data/generated/")
+    logger.info("  Validated: data/validated/")
+    logger.info("  Failed: data/validation_failed/")
     logger.info("")
 
     try:
