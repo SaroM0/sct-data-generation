@@ -2,7 +2,7 @@
 name = "sct-generation"
 version = "0.1.0"
 description = "SCT (Script Concordance Test) data generation using OpenAI"
-authors = ["Your Name <you@example.com>"]
+authors = ["Santiago Rodriguez Mora <rodriguezmorasantiago@gmail.com>"]
 readme = "README.md"
 packages = [{include = "src"}]
 

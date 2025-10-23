@@ -9,6 +9,7 @@ from ..llm import OpenAIClient
 from ..logging import get_logger
 from ..schemas import SCTItem
 from ..validators import validate_sct_item
+from ..validators.utils import save_validated_sct
 
 logger = get_logger(__name__)
 
@@ -133,6 +134,9 @@ class SCTGenerator:
                     )
                     for warning in validation_result.warnings:
                         logger.warning(f"  - {warning}")
+
+            # Save the item to appropriate folders
+            save_validated_sct(sct_item, validation_result)
 
             return sct_item
 

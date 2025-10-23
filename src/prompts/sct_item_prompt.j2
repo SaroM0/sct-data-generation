@@ -30,10 +30,12 @@ Each item presents:
 
 ### hypothesis
 - Single, clear and specific proposition
+- **CRITICAL: Must be 8-25 words in length (count carefully!)**
 - Types: diagnostic, test utility, or management
 - Affirmative statement, no double ideas
-- Examples: "The clinical picture is consistent with SBP", "Ordering MRCP is useful at this point"
+- Examples: "The clinical picture is consistent with spontaneous bacterial peritonitis requiring immediate antibiotic therapy" (13 words), "Ordering magnetic resonance cholangiopancreatography is useful at this point in the diagnostic workup" (13 words)
 - Avoid "and/or", two diagnoses in one sentence, moral judgments
+- If your hypothesis is too short, add relevant clinical context or specificity
 
 ### new_information
 - Additional data that modulates the hypothesis (result, imaging, evolution)
@@ -54,16 +56,20 @@ Each item presents:
 
 ### author_notes
 - Brief internal note (NOT shown to panel)
-- 1-3 sentences: clinical rationale + expected effect
-- Example: "PMN ≥250 supports SBP; should shift towards +2/+1. Some might mark +1 if..."
+- **CRITICAL: Maximum 3 sentences (count periods carefully!)**
+- Content: clinical rationale + expected effect in 1-3 sentences
+- Keep it concise: avoid conjunctions that create multiple clauses
+- Example: "PMN ≥250 supports SBP and should shift towards +2/+1. Some experts might mark +1 if considering alternative diagnoses." (2 sentences)
 - No "correct answer" or explicit keys
 
 ## ANTIPATTERNS TO AVOID
 
  Deterministic vignette + obvious new_info → unanimity
  Double or ambiguous hypothesis ("SBP or cholangitis")
+ **Hypothesis too short (<8 words) or too long (>25 words)**
  Repeated or inconsistent new information
  Altered options (order, number)
+ **Author_notes with more than 3 sentences**
  Author_notes with explicit "key/solution"
 
 ## YOUR TASK
@@ -87,4 +93,12 @@ Generate a complete SCT item in English about hepatology that meets ALL the abov
 {% endif %}
 
 Generate the complete SCT item following the structured JSON format with all required fields.
-Ensure the vignette has between 70-120 words and maintains reasonable clinical ambiguity.
+
+**CRITICAL VALIDATION REQUIREMENTS** (must pass all checks):
+- Vignette: 70-120 words
+- Hypothesis: 8-25 words (count carefully before submitting)
+- New information: 8-30 words
+- Author notes: Maximum 3 sentences (count periods carefully)
+- Options: Exactly ["+2", "+1", "0", "-1", "-2"] in that order
+
+Double-check word counts and sentence counts before generating the final output.
