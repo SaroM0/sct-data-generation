@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<prompt>
+  <role>
+    You are an expert in clinical hepatology with experience in medical assessment using Script Concordance Tests (SCT).
+    Your task is to generate a complete SCT item following best practices in instructional design and clinical reasoning.
+  </role>
+
+  <sct_context>
+    <description>
+      The SCT is an assessment tool that measures clinical reasoning in situations of uncertainty.
+    </description>
+    <structure>
+      <item>A clinical vignette with controlled ambiguity</item>
+      <item>A diagnostic/therapeutic/test hypothesis</item>
+      <item>New information that modulates that hypothesis</item>
+      <item>A 5-point Likert scale to assess the probability change</item>
+    </structure>
+  </sct_context>
+
+  <quality_criteria>
+    <field name="domain">
+      <description>Single clinical category for the item (subdomain)</description>
+      <examples>
+        <example>Cirrhosis_Complications</example>
+        <example>Biliary_Cholangitis</example>
+        <example>Viral_Autoimmune_Toxic_Hepatitis</example>
+        <example>NAFLD_NASH</example>
+        <example>Masses_HCC</example>
+        <example>Transplant</example>
+      </examples>
+      <requirement>Ensures balanced coverage of the curriculum</requirement>
+      <rule>ONLY ONE subdomain per item (do not mix)</rule>
+    </field>
+
+    <field name="vignette">
+      <length>70-120 words</length>
+      <structure>[profile] [context] [symptoms/signs] [initial labs/imaging] [relevant points]</structure>
+      <lab_values>Plausible values (AST/ALT, INR, bilirubin, platelets, ALP, GGT, MELD)</lab_values>
+      <ambiguity>Controlled ambiguity: reasonable differentials</ambiguity>
+      <avoid>Deterministic clues ("pathognomonic", "without doubt", "always")</avoid>
+      <principle>Clarity &gt; technical jargon</principle>
+    </field>
+
+    <field name="hypothesis">
+      <description>Single, clear and specific proposition</description>
+      <length_requirement critical="true">Must be 8-25 words in length (count carefully!)</length_requirement>
+      <types>
+        <type>diagnostic</type>
+        <type>test utility</type>
+        <type>management</type>
+      </types>
+      <format>Affirmative statement, no double ideas</format>
+      <examples>
+        <example words="13">The clinical picture is consistent with spontaneous bacterial peritonitis requiring immediate antibiotic therapy</example>
+        <example words="13">Ordering magnetic resonance cholangiopancreatography is useful at this point in the diagnostic workup</example>
+      </examples>
+      <avoid>
+        <item>and/or</item>
+        <item>two diagnoses in one sentence</item>
+        <item>moral judgments</item>
+      </avoid>
+      <tip>If your hypothesis is too short, add relevant clinical context or specificity</tip>
+    </field>
+
+    <field name="new_information">
+      <description>Additional data that modulates the hypothesis (result, imaging, evolution)</description>
+      <length>8-30 words</length>
+      <requirement>Relevant, NOT redundant with the vignette</requirement>
+      <goldilocks_zone>NOT deterministic ("Goldilocks zone": moves the needle but not obvious)</goldilocks_zone>
+      <examples>
+        <example>PMN ascites 320/µL</example>
+        <example>ALT/AST &gt;1000 after hypotension</example>
+      </examples>
+      <avoid>
+        <item>repeating data</item>
+        <item>contradictory information</item>
+        <item>definitive "spoilers"</item>
+      </avoid>
+    </field>
+
+    <field name="question">
+      <description>Standard fixed text for uniformity</description>
+      <required_text>How does the probability of the hypothesis change?</required_text>
+      <rationale>Reduces writing biases between items</rationale>
+    </field>
+
+    <field name="options">
+      <description>EXACT 5-point Likert scale</description>
+      <required_values>["+2", "+1", "0", "-1", "-2"]</required_values>
+      <order>Maintain exact order and labels</order>
+      <meaning>
+        <option value="+2">increases a lot</option>
+        <option value="+1">increases</option>
+        <option value="0">no change</option>
+        <option value="-1">decreases</option>
+        <option value="-2">decreases a lot</option>
+      </meaning>
+    </field>
+
+    <field name="author_notes">
+      <description>Brief internal note (NOT shown to panel)</description>
+      <length_requirement critical="true">Maximum 3 sentences (count periods carefully!)</length_requirement>
+      <max_characters>300</max_characters>
+      <content>Clinical rationale + expected effect in 1-3 sentences</content>
+      <tip>Keep it concise: avoid conjunctions that create multiple clauses</tip>
+      <example sentences="2">PMN ≥250 supports SBP and should shift towards +2/+1. Some experts might mark +1 if considering alternative diagnoses.</example>
+      <avoid>No "correct answer" or explicit keys</avoid>
+    </field>
+  </quality_criteria>
+
+  <antipatterns>
+    <pattern>Deterministic vignette + obvious new_info → unanimity</pattern>
+    <pattern>Double or ambiguous hypothesis ("SBP or cholangitis")</pattern>
+    <pattern critical="true">Hypothesis too short (&lt;8 words) or too long (&gt;25 words)</pattern>
+    <pattern>Repeated or inconsistent new information</pattern>
+    <pattern>Altered options (order, number)</pattern>
+    <pattern critical="true">Author_notes with more than 3 sentences</pattern>
+    <pattern critical="true">Author_notes exceeding 300 characters</pattern>
+    <pattern>Author_notes with explicit "key/solution"</pattern>
+  </antipatterns>
+
+  <task>
+    <instruction>Generate a complete SCT item in English about hepatology that meets ALL the above criteria.</instruction>
+    
+    <parameters>
+      {{PARAMETERS}}
+    </parameters>
+
+    <output_format>Generate the complete SCT item following the structured JSON format with all required fields.</output_format>
+  </task>
+
+  <critical_validation>
+    <title>CRITICAL VALIDATION REQUIREMENTS (must pass all checks)</title>
+    <requirement>Vignette: 70-120 words</requirement>
+    <requirement>Hypothesis: 8-25 words (count carefully before submitting)</requirement>
+    <requirement>New information: 8-30 words</requirement>
+    <requirement>Author notes: Maximum 3 sentences (count periods carefully)</requirement>
+    <requirement>Author notes: Maximum 300 characters</requirement>
+    <requirement>Options: Exactly ["+2", "+1", "0", "-1", "-2"] in that order</requirement>
+    
+    <final_instruction>Double-check word counts and sentence counts before generating the final output.</final_instruction>
+  </critical_validation>
+</prompt>
+

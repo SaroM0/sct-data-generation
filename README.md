@@ -4,7 +4,7 @@ Automated generation of Script Concordance Test (SCT) items for medical educatio
 
 ## Overview
 
-This project implements an automated system for generating high-quality Script Concordance Test (SCT) items in the field of hepatology and gastroenterology. Based on research findings from "Using Large Language Models to Generate Script Concordance Test in Medical Education: ChatGPT and Claude," this implementation uses OpenAI's API exclusively due to its superior performance in generating clinically relevant assessment items.
+This project implements an automated system for generating high-quality Script Concordance Test (SCT) items in the field of hepatology and gastroenterology. Based on research findings from "Using Large Language Models to Generate Script Concordance Test in Medical Education: ChatGPT and Claude," this implementation supports both OpenAI and Google Gemini APIs for generating clinically relevant assessment items.
 
 ### What are Script Concordance Tests?
 
@@ -17,7 +17,8 @@ Script Concordance Tests (SCT) are assessment tools designed to evaluate clinica
 
 ### Key Features
 
-- **Automated Generation**: Creates complete SCT items using OpenAI's structured outputs API
+- **Multiple LLM Providers**: Choose between OpenAI or Google Gemini for generation
+- **Automated Generation**: Creates complete SCT items using structured outputs API
 - **Configurable Domains**: Customizable clinical domains (HCC, Obesity, Celiac Disease, GERD, IBD, Pancreatitis, etc.)
 - **Validation System**: Automatic quantitative validation of generated items
 - **Organized Storage**: Triple-folder system for cataloging all, validated, and failed items
@@ -32,11 +33,13 @@ sct-data-generation/
 │   ├── config.py              # Configuration management
 │   ├── logging.py             # Logging setup
 │   ├── main.py                # Application entry point
-│   ├── llm/                   # OpenAI client and services
+│   ├── llm/                   # LLM clients (OpenAI and Gemini)
+│   │   ├── openai/            # OpenAI client and services
+│   │   └── gemini/            # Gemini client and services
 │   ├── generator/             # SCT generation logic
 │   ├── validators/            # Validation rules and utilities
 │   ├── schemas/               # Pydantic data models
-│   └── prompts/               # Generation prompt templates
+│   └── prompts/               # XML prompt templates
 ├── data/
 │   ├── generated/             # All generated items
 │   ├── validated/             # Items that passed validation
@@ -51,7 +54,7 @@ sct-data-generation/
 
 - Python 3.10 or higher
 - Poetry (Python package manager)
-- OpenAI API key
+- OpenAI API key and/or Google Gemini API key
 
 ### Setup Steps
 
@@ -77,13 +80,20 @@ sct-data-generation/
    # Edit .env with your configuration
    ```
 
-5. **Set your OpenAI API key**
+5. **Set your API key(s)**
    
    Edit `.env` file:
    ```bash
-   OPENAI_API_KEY=your-api-key-here
+   # Choose your provider: "openai" or "gemini"
+   LLM_PROVIDER=openai
+   
+   # Set the appropriate API key
+   OPENAI_API_KEY=your-openai-api-key-here
+   GEMINI_API_KEY=your-gemini-api-key-here
+   
+   # Configure generation settings
    NUM_SCTS_TO_GENERATE=10
-   MODEL=chatgpt-4o-latest
+   MODEL=chatgpt-4o-latest  # or gemini-2.5-flash for Gemini
    DOMAIN_DISTRIBUTION=HCC,Obesity,Celiac_Disease,GERD,IBD,Pancreatitis
    LOG_LEVEL=INFO
    ```
@@ -94,11 +104,25 @@ sct-data-generation/
 
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
-| `OPENAI_API_KEY` | Your OpenAI API key | - | Yes |
+| `LLM_PROVIDER` | LLM provider to use ("openai" or "gemini") | openai | Yes |
+| `OPENAI_API_KEY` | Your OpenAI API key | - | If using OpenAI |
+| `GEMINI_API_KEY` | Your Google Gemini API key | - | If using Gemini |
 | `NUM_SCTS_TO_GENERATE` | Number of items to generate | 10 | Yes |
-| `MODEL` | OpenAI model to use | chatgpt-4o-latest | Yes |
+| `MODEL` | LLM model to use | chatgpt-4o-latest | Yes |
 | `DOMAIN_DISTRIBUTION` | Comma-separated clinical domains | HCC,Obesity,... | Yes |
 | `LOG_LEVEL` | Logging level (INFO, DEBUG, WARNING, ERROR) | INFO | No |
+
+### Supported Models
+
+**OpenAI:**
+- `chatgpt-4o-latest` (recommended)
+- `gpt-4o`
+- `gpt-4o-mini`
+
+**Google Gemini:**
+- `gemini-2.5-flash` (recommended)
+- `gemini-2.5-pro`
+- `gemini-2.0-flash`
 
 ### Clinical Domains
 
@@ -127,6 +151,11 @@ poetry run sct-generate
 NUM_SCTS_TO_GENERATE=5 poetry run sct-generate
 ```
 
+**Use Gemini instead of OpenAI:**
+```bash
+LLM_PROVIDER=gemini MODEL=gemini-2.5-flash poetry run sct-generate
+```
+
 **Alternative execution method:**
 ```bash
 poetry run python -m src.main
@@ -151,6 +180,7 @@ SCT DATA GENERATION APPLICATION
 ======================================================================
 
 Configuration:
+  LLM Provider: OPENAI
   Number of SCTs: 10
   Model: chatgpt-4o-latest
   Domains: HCC, Obesity, Celiac_Disease, GERD, IBD, Pancreatitis (6 total)
@@ -244,27 +274,35 @@ Items in `validated/` and `validation_failed/` folders include validation metada
 
 - **Language**: Python 3.10+
 - **Package Manager**: Poetry
-- **LLM Provider**: OpenAI (Responses API)
+- **LLM Providers**: OpenAI (Responses API) and Google Gemini
 - **Data Validation**: Pydantic v2
-- **Template Engine**: Jinja2
+- **Prompt Format**: Structured XML
 - **Configuration**: Pydantic Settings + python-dotenv
 
-### Why OpenAI?
+### Choosing a Provider
 
-This implementation uses OpenAI exclusively based on research findings showing superior performance in:
-- Clinical accuracy
-- Adherence to SCT format specifications
-- Consistency in structured output generation
-- Quality of reasoning in ambiguous scenarios
+This implementation supports both OpenAI and Google Gemini:
+
+**OpenAI:**
+- Excellent clinical accuracy
+- Strong adherence to SCT format specifications
+- Consistent structured output generation
+- Superior reasoning in ambiguous scenarios
+
+**Google Gemini:**
+- Fast response times (especially with 2.5 Flash)
+- Cost-effective for high-volume generation
+- Good structured output support
+- Native thinking capabilities for complex reasoning
 
 ### Dependencies
 
 ```toml
 python = "^3.10"
 openai = "^1.0.0"
+google-genai = "^0.3.0"
 pydantic = "^2.0.0"
 pydantic-settings = "^2.0.0"
-jinja2 = "^3.0.0"
 python-dotenv = "^1.0.0"
 ```
 
@@ -272,8 +310,11 @@ python-dotenv = "^1.0.0"
 
 ### Common Issues
 
-**Issue: "OPENAI_API_KEY not configured"**
-- Solution: Ensure your `.env` file contains a valid OpenAI API key
+**Issue: "Invalid LLM_PROVIDER"**
+- Solution: Set `LLM_PROVIDER` to either "openai" or "gemini" in your `.env` file
+
+**Issue: "OPENAI_API_KEY not configured" or "GEMINI_API_KEY not configured"**
+- Solution: Ensure your `.env` file contains the appropriate API key for your chosen provider
 
 **Issue: "No domains configured"**
 - Solution: Set `DOMAIN_DISTRIBUTION` in your `.env` file

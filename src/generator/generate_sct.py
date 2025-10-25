@@ -1,11 +1,10 @@
-"""SCT Item Generator using OpenAI Structured Outputs."""
+"""SCT Item Generator using OpenAI or Gemini Structured Outputs."""
 
 from pathlib import Path
 from typing import Optional
 
-from jinja2 import Environment, FileSystemLoader
-
-from ..llm import OpenAIClient
+from ..llm.gemini import GeminiClient
+from ..llm.openai import OpenAIClient
 from ..logging import get_logger
 from ..schemas import SCTItem
 from ..validators import validate_sct_item
@@ -18,22 +17,41 @@ class SCTGenerator:
     """
     Generator for Script Concordance Test (SCT) items.
 
-    Uses OpenAI's structured outputs to ensure valid SCT item generation.
+    Uses OpenAI or Gemini structured outputs to ensure valid SCT item generation.
     """
 
-    def __init__(self):
-        """Initialize SCT generator."""
-        self.client = OpenAIClient()
+    def __init__(self, provider: str = "openai"):
+        """
+        Initialize SCT generator.
 
-        # Setup Jinja2 for prompt templates
+        Args:
+            provider: LLM provider to use ("openai" or "gemini").
+        """
+        self.provider = provider.lower()
+
+        if self.provider == "openai":
+            self.client = OpenAIClient()
+        elif self.provider == "gemini":
+            self.client = GeminiClient()
+        else:
+            raise ValueError(
+                f"Invalid provider: {provider}. Must be 'openai' or 'gemini'"
+            )
+
+        # Load XML prompt template
         prompts_dir = Path(__file__).parent.parent / "prompts"
-        self.jinja_env = Environment(
-            loader=FileSystemLoader(str(prompts_dir)),
-            trim_blocks=True,
-            lstrip_blocks=True,
-        )
+        self.prompt_template_path = prompts_dir / "sct_item_prompt.xml"
 
-        logger.info("SCT Generator initialized")
+        if not self.prompt_template_path.exists():
+            raise FileNotFoundError(
+                f"Prompt template not found: {self.prompt_template_path}"
+            )
+
+        # Load the XML template
+        with open(self.prompt_template_path, "r", encoding="utf-8") as f:
+            self.prompt_template = f.read()
+
+        logger.info(f"SCT Generator initialized with provider: {self.provider}")
 
     def _render_prompt(
         self,
@@ -43,7 +61,7 @@ class SCTGenerator:
         additional_context: Optional[str],
     ) -> str:
         """
-        Render the SCT item generation prompt.
+        Render the SCT item generation prompt from XML template.
 
         Args:
             topic: Specific topic for the SCT item.
@@ -54,16 +72,40 @@ class SCTGenerator:
         Returns:
             Rendered prompt string.
         """
-        template = self.jinja_env.get_template("sct_item_prompt.j2")
+        # Build parameters list
+        parameters = []
 
-        rendered = template.render(
-            topic=topic,
-            domain=domain,
-            difficulty=difficulty,
-            additional_context=additional_context,
-        )
+        if topic:
+            parameters.append(f"<topic>{topic}</topic>")
 
-        logger.debug("Prompt rendered successfully")
+        if domain:
+            parameters.append(f"<domain>{domain}</domain>")
+
+        if difficulty:
+            parameters.append(f"<difficulty>{difficulty}</difficulty>")
+
+        if additional_context:
+            parameters.append(
+                f"<additional_context>{additional_context}</additional_context>"
+            )
+
+        # Create parameters content
+        if parameters:
+            parameters_content = "\n      ".join(parameters)
+        else:
+            parameters_content = "<note>No specific parameters provided</note>"
+
+        # Replace the single placeholder - much more robust than matching multiline blocks
+        rendered = self.prompt_template.replace("{{PARAMETERS}}", parameters_content)
+
+        # Verify the replacement worked
+        if "{{PARAMETERS}}" in rendered:
+            logger.warning(
+                "Failed to replace {{PARAMETERS}} placeholder in template. "
+                "Check that the template contains the placeholder."
+            )
+
+        logger.debug("Prompt rendered successfully from XML template")
         return rendered
 
     def generate(
@@ -80,7 +122,7 @@ class SCTGenerator:
         The item is automatically saved to data/generated/ folder.
 
         Args:
-            model: OpenAI model to use (must support structured outputs).
+            model: LLM model to use (must support structured outputs).
             topic: Specific topic for the SCT item (e.g., "spontaneous bacterial peritonitis").
             domain: Clinical domain (e.g., "Cirrhosis_Complications").
             difficulty: Difficulty level (e.g., "intermediate", "advanced").
@@ -92,7 +134,7 @@ class SCTGenerator:
         Raises:
             ValueError: If model refuses the request.
         """
-        logger.info("Starting SCT item generation")
+        logger.info(f"Starting SCT item generation with {self.provider}")
         logger.info(f"Parameters - model: {model}, topic: {topic}, domain: {domain}")
 
         # Render prompt
@@ -150,6 +192,7 @@ class SCTGenerator:
 
 def generate_sct_item(
     model: str,
+    provider: str = "openai",
     topic: Optional[str] = None,
     domain: Optional[str] = None,
     difficulty: Optional[str] = None,
@@ -159,7 +202,8 @@ def generate_sct_item(
     Convenience function to generate a single SCT item.
 
     Args:
-        model: OpenAI model to use (must support structured outputs).
+        model: LLM model to use (must support structured outputs).
+        provider: LLM provider to use ("openai" or "gemini").
         topic: Specific topic for the SCT item.
         domain: Clinical domain.
         difficulty: Difficulty level.
@@ -168,5 +212,5 @@ def generate_sct_item(
     Returns:
         Generated SCTItem.
     """
-    generator = SCTGenerator()
+    generator = SCTGenerator(provider=provider)
     return generator.generate(model, topic, domain, difficulty, additional_context)

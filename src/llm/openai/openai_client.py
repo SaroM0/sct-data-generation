@@ -2,11 +2,12 @@
 
 from typing import Any, Type
 
-from openai import OpenAI
 from pydantic import BaseModel
 
-from ..config import settings
-from ..logging import get_logger
+from openai import OpenAI
+
+from ...config import settings
+from ...logging import get_logger
 
 logger = get_logger(__name__)
 

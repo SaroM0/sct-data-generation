@@ -8,8 +8,14 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     """Application settings."""
 
+    # LLM Provider Configuration
+    llm_provider: str = "openai"  # "openai" or "gemini"
+
     # OpenAI Configuration
-    openai_api_key: str
+    openai_api_key: str = ""
+
+    # Gemini Configuration
+    gemini_api_key: str = ""
 
     # Generation Configuration
     num_scts_to_generate: int

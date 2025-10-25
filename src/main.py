@@ -16,14 +16,17 @@ from .schemas import SCTItem
 logger = get_logger(__name__)
 
 
-def generate_scts(num_items: int, model: str, domains: List[str]) -> List[SCTItem]:
+def generate_scts(
+    num_items: int, model: str, domains: List[str], provider: str
+) -> List[SCTItem]:
     """
     Generate N SCT items with balanced domain coverage.
 
     Args:
         num_items: Number of SCT items to generate.
-        model: OpenAI model to use.
+        model: LLM model to use.
         domains: List of clinical domains to distribute items across.
+        provider: LLM provider to use ("openai" or "gemini").
 
     Returns:
         List of generated SCTItem objects.
@@ -32,6 +35,7 @@ def generate_scts(num_items: int, model: str, domains: List[str]) -> List[SCTIte
     failed_count = 0
 
     logger.info(f"Starting generation of {num_items} SCT items")
+    logger.info(f"Using provider: {provider}")
     logger.info(f"Using model: {model}")
     logger.info(f"Domains: {', '.join(domains)}")
     logger.info("=" * 70)
@@ -47,6 +51,7 @@ def generate_scts(num_items: int, model: str, domains: List[str]) -> List[SCTIte
 
             item = generate_sct_item(
                 model=model,
+                provider=provider,
                 domain=domain,
             )
 
@@ -82,11 +87,24 @@ def main() -> int:
     logger.info("SCT DATA GENERATION APPLICATION")
     logger.info("=" * 70)
 
-    # Validate configuration
-    if not settings.openai_api_key:
-        logger.error("ERROR: OPENAI_API_KEY not configured")
-        logger.error("Please set OPENAI_API_KEY in .env file or environment")
+    # Validate LLM provider
+    provider = settings.llm_provider.lower()
+    if provider not in ["openai", "gemini"]:
+        logger.error(f"ERROR: Invalid LLM_PROVIDER: {provider}")
+        logger.error("Must be 'openai' or 'gemini'")
         return 1
+
+    # Validate API key based on provider
+    if provider == "openai":
+        if not settings.openai_api_key:
+            logger.error("ERROR: OPENAI_API_KEY not configured")
+            logger.error("Please set OPENAI_API_KEY in .env file or environment")
+            return 1
+    elif provider == "gemini":
+        if not settings.gemini_api_key:
+            logger.error("ERROR: GEMINI_API_KEY not configured")
+            logger.error("Please set GEMINI_API_KEY in .env file or environment")
+            return 1
 
     if settings.num_scts_to_generate <= 0:
         logger.error(
@@ -104,6 +122,7 @@ def main() -> int:
 
     # Display configuration
     logger.info("\nConfiguration:")
+    logger.info(f"  LLM Provider: {provider.upper()}")
     logger.info(f"  Number of SCTs: {settings.num_scts_to_generate}")
     logger.info(f"  Model: {settings.model}")
     logger.info(f"  Domains: {', '.join(domains)} ({len(domains)} total)")
@@ -118,6 +137,7 @@ def main() -> int:
             num_items=settings.num_scts_to_generate,
             model=settings.model,
             domains=domains,
+            provider=provider,
         )
 
         if not items:
