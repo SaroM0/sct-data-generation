@@ -85,10 +85,10 @@ class SCTValidator:
 
         # Word count
         word_count = len(vignette.split())
-        if word_count < 70:
-            result.add_error(f"Vignette too short: {word_count} words (minimum: 70)")
-        elif word_count > 120:
-            result.add_error(f"Vignette too long: {word_count} words (maximum: 120)")
+        if word_count < 120:
+            result.add_error(f"Vignette too short: {word_count} words (minimum: 120)")
+        elif word_count > 240:
+            result.add_error(f"Vignette too long: {word_count} words (maximum: 240)")
 
         # Check for single paragraph (no line breaks)
         if "\n" in vignette.strip():

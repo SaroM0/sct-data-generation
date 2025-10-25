@@ -3,13 +3,14 @@ Main entry point.
 
 This application generates N SCT (Script Concordance Test) items and saves them.
 The number of items is configured via NUM_SCTS_TO_GENERATE environment variable.
+Items are distributed across three clinical guidelines: American, British, and European.
 """
 
 import sys
 from typing import List
 
 from .config import settings
-from .generator import generate_sct_item
+from .generator import generate_items_per_guideline
 from .logging import get_logger, setup_logging
 from .schemas import SCTItem
 
@@ -20,57 +21,67 @@ def generate_scts(
     num_items: int, model: str, domains: List[str], provider: str
 ) -> List[SCTItem]:
     """
-    Generate N SCT items with balanced domain coverage.
+    Generate N SCT items distributed across three clinical guidelines.
+    
+    Each guideline (American, British, European) will receive num_items items.
+    Total generated = num_items * 3 guidelines.
 
     Args:
-        num_items: Number of SCT items to generate.
+        num_items: Number of SCT items to generate PER GUIDELINE.
         model: LLM model to use.
         domains: List of clinical domains to distribute items across.
         provider: LLM provider to use ("openai" or "gemini").
 
     Returns:
-        List of generated SCTItem objects.
+        List of all generated SCTItem objects.
     """
-    generated_items = []
-    failed_count = 0
-
-    logger.info(f"Starting generation of {num_items} SCT items")
+    logger.info(f"Starting generation of {num_items} SCT items PER GUIDELINE")
+    logger.info(f"Total items to generate: {num_items * 3} (across 3 guidelines)")
     logger.info(f"Using provider: {provider}")
     logger.info(f"Using model: {model}")
     logger.info(f"Domains: {', '.join(domains)}")
     logger.info("=" * 70)
 
-    for i in range(num_items):
-        # Distribute items across domains for balanced coverage
-        domain = domains[i % len(domains)]
+    # Select a domain for this generation run
+    # If you want to distribute across domains, you could modify this
+    domain = domains[0] if domains else None
 
-        try:
-            logger.info(
-                f"\n[{i + 1}/{num_items}] Generating SCT item - Domain: {domain}"
-            )
+    try:
+        # Generate items for all three guidelines
+        results = generate_items_per_guideline(
+            model=model,
+            items_per_guideline=num_items,
+            provider=provider,
+            domain=domain,
+        )
 
-            item = generate_sct_item(
-                model=model,
-                provider=provider,
-                domain=domain,
-            )
+        # Flatten results into a single list
+        all_items = []
+        for guideline, items in results.items():
+            all_items.extend(items)
 
-            generated_items.append(item)
-            logger.info(f"✓ Successfully generated and saved item {i + 1}/{num_items}")
+        # Calculate statistics
+        total_generated = len(all_items)
+        total_expected = num_items * 3
+        failed_count = total_expected - total_generated
 
-        except Exception as e:
-            failed_count += 1
-            logger.error(f"✗ Failed to generate item {i + 1}/{num_items}: {e}")
+        logger.info("=" * 70)
+        logger.info("\nGeneration complete!")
+        logger.info(f"  Successful: {total_generated}/{total_expected}")
+        logger.info(f"  Failed: {failed_count}/{total_expected}")
+        logger.info("\n  Breakdown by guideline:")
+        for guideline, items in results.items():
+            logger.info(f"    {guideline.capitalize()}: {len(items)}/{num_items}")
+        logger.info("\n  Output folders:")
+        logger.info("    All items: data/generated/")
+        logger.info("    Validated: data/validated/")
+        logger.info("    Failed validation: data/validation_failed/")
 
-    logger.info("=" * 70)
-    logger.info("\nGeneration complete!")
-    logger.info(f"  Successful: {len(generated_items)}/{num_items}")
-    logger.info(f"  Failed: {failed_count}/{num_items}")
-    logger.info("  All items: data/generated/")
-    logger.info("  Validated: data/validated/")
-    logger.info("  Failed validation: data/validation_failed/")
+        return all_items
 
-    return generated_items
+    except Exception as e:
+        logger.error(f"Error during generation: {e}")
+        raise
 
 
 def main() -> int:
@@ -123,7 +134,9 @@ def main() -> int:
     # Display configuration
     logger.info("\nConfiguration:")
     logger.info(f"  LLM Provider: {provider.upper()}")
-    logger.info(f"  Number of SCTs: {settings.num_scts_to_generate}")
+    logger.info(f"  Items per guideline: {settings.num_scts_to_generate}")
+    logger.info(f"  Total items: {settings.num_scts_to_generate * 3} (3 guidelines)")
+    logger.info(f"  Guidelines: American, British, European")
     logger.info(f"  Model: {settings.model}")
     logger.info(f"  Domains: {', '.join(domains)} ({len(domains)} total)")
     logger.info("  All items: data/generated/")
