@@ -197,8 +197,9 @@ Use this guideline as reference to ensure clinical accuracy and reflect real-wor
             "Generate a complete SCT item in English about hepatology "
             "following EXACTLY the format and quality criteria provided. "
             "Ensure all fields meet the quality specifications. "
-            "CRITICAL: The 'options' field MUST be exactly ['+2', '+1', '0', '-1', '-2'] - "
-            "DO NOT modify these fixed scale values under any circumstances."
+            "CRITICAL REQUIREMENTS: "
+            "1. The 'options' field MUST be exactly ['+2', '+1', '0', '-1', '-2'] - DO NOT modify these fixed scale values. "
+            "2. The 'vignette' MUST be 120-240 words (aim for 150-200 words for optimal depth). COUNT CAREFULLY."
         )
 
         try:

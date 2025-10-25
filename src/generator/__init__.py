@@ -1,5 +1,6 @@
 """Generator module."""
 
+from .export import export_generated_items_to_csv, load_all_generated_items
 from .generate_sct import (
     GuidelineType,
     SCTGenerator,
@@ -16,5 +17,7 @@ __all__ = [
     "generate_items_per_guideline",
     "GuidelineType",
     "save_sct_item",
+    "export_generated_items_to_csv",
+    "load_all_generated_items",
 ]
 

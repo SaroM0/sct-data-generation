@@ -83,7 +83,7 @@ class SCTValidator:
             result.add_error("Vignette is required and cannot be empty")
             return
 
-        # Word count
+        # Word count - updated to 120-240 words
         word_count = len(vignette.split())
         if word_count < 120:
             result.add_error(f"Vignette too short: {word_count} words (minimum: 120)")

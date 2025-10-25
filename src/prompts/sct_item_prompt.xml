@@ -1,267 +1,110 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <prompt>
   <role>
-    You are an expert in celiac disease with experience in medical assessment using Script Concordance Tests (SCT).
-    Your task is to generate a complete SCT item set (one vignette with THREE questions) following best practices in instructional design and clinical reasoning.
+    You are an expert hepatologist creating Script Concordance Test (SCT) items.
+    Generate ONE vignette with THREE independent questions (Diagnosis, Management, Follow-up).
   </role>
 
-  <sct_context>
-    <description>
-      The SCT is an assessment tool that measures clinical reasoning in situations of uncertainty.
-      It is particularly suited to celiac disease, where diagnostic dilemmas, management complexities, and follow-up controversies often defy simple algorithmic solutions.
-    </description>
+  <sct_fundamentals>
+    <purpose>The SCT assesses clinical reasoning in uncertainty—particularly suited to hepatology where diagnostic dilemmas, management complexities, and follow-up controversies defy simple algorithms.</purpose>
     <structure>
-      <item>A clinical vignette presenting an ill-defined problem with controlled ambiguity</item>
-      <item>THREE mandatory questions (Diagnosis, Management, Follow-up) each with:
-        - Part A: A hypothesis or clinical option ("If you were thinking of...")
-        - Part B: New information that modulates the hypothesis ("...and then you find...")
-        - Part C: A 5-point Likert scale to assess how the hypothesis changes
-      </item>
-      <critical_rule>Each question must be INDEPENDENT - new information in one question does NOT carry over to others</critical_rule>
+      <vignette>Clinical scenario presenting an "ill-defined" problem with controlled ambiguity</vignette>
+      <questions>THREE mandatory independent questions, each with:
+        - Part A: Hypothesis/option ("If you were thinking of...")
+        - Part B: New information ("...and then you find...")
+        - Part C: 5-point Likert scale (effect on hypothesis)
+      </questions>
+      <independence_rule>CRITICAL: Each question is INDEPENDENT. New information in Q1 does NOT carry to Q2 or Q3.</independence_rule>
     </structure>
-  </sct_context>
+  </sct_fundamentals>
 
-  <quality_criteria>
-    <field name="theme">
-      <description>The clinical theme/domain for the item set (must align with one of the three core themes)</description>
-      <themes>
-        <theme name="Diagnostic_Dilemmas">Navigating conflicting and incomplete data
-          <subtopics>
-            <subtopic>Positive serology, normal biopsy (potential celiac disease)</subtopic>
-            <subtopic>Seronegative villous atrophy (SNVA)</subtopic>
-            <subtopic>IgA deficiency and testing pitfalls</subtopic>
-            <subtopic>Diagnosis in patients already on gluten-free diet</subtopic>
-          </subtopics>
-        </theme>
-        <theme name="Management_Challenges">When standard care fails or complications arise
-          <subtopics>
-            <subtopic>Non-responsive celiac disease (NRCD)</subtopic>
-            <subtopic>Differentiating NRCD from refractory celiac disease (RCD)</subtopic>
-            <subtopic>Managing co-existing conditions (SIBO, pancreatic insufficiency, IBS)</subtopic>
-            <subtopic>Initiating advanced therapies for RCD</subtopic>
-          </subtopics>
-        </theme>
-        <theme name="Follow_up_Controversies">Monitoring in the absence of consensus
-          <subtopics>
-            <subtopic>Assessing dietary adherence</subtopic>
-            <subtopic>Role and timing of follow-up endoscopy</subtopic>
-            <subtopic>Structuring long-term care models</subtopic>
-            <subtopic>Managing persistent serology elevation</subtopic>
-          </subtopics>
-        </theme>
-      </themes>
-      <requirement>Select ONE theme that best captures the clinical scenario</requirement>
-      <note>Effective vignettes may integrate elements from multiple themes, reflecting longitudinal complexity</note>
-    </field>
+  <clinical_themes>
+    <theme name="Diagnostic_Dilemmas">Navigating conflicting/incomplete data (e.g., positive serology with normal biopsy, seronegative villous atrophy, IgA deficiency pitfalls)</theme>
+    <theme name="Management_Challenges">When standard care fails (e.g., non-responsive disease, refractory conditions, co-existing disorders, advanced therapies)</theme>
+    <theme name="Follow_up_Controversies">Monitoring without consensus (e.g., assessing adherence, role/timing of repeat procedures, structuring long-term care)</theme>
+  </clinical_themes>
 
-    <field name="vignette">
-      <description>A brief, authentic clinical scenario that presents an "ill-defined" problem</description>
-      <length>120-240 words</length>
-      <structure>[patient demographics] [medical history] [presenting symptoms] [initial test results] [clinical context]</structure>
-      <lab_values>Plausible celiac-relevant values (IgA tTG, total IgA, hemoglobin, albumin, vitamin levels)</lab_values>
-      <imaging_endoscopy>May include endoscopic findings (scalloping, loss of folds) and biopsy results (Marsh classification)</imaging_endoscopy>
-      <ambiguity>Must present controlled ambiguity with reasonable differentials - challenging even for experts</ambiguity>
-      <avoid>
-        <item>Deterministic clues ("pathognomonic", "without doubt", "always")</item>
-        <item>Superfluous information not relevant to reasoning</item>
-        <item>Overly simplistic "textbook" presentations</item>
-      </avoid>
-      <principle>Concise yet sufficiently detailed to present a realistic clinical puzzle</principle>
-    </field>
+  <vignette_requirements>
+    <length>120-240 words (COUNT CAREFULLY - strictly enforced; aim for 150-200)</length>
+    <content>
+      - Patient demographics + medical history
+      - Presenting symptoms + initial test results
+      - Clinical context with controlled ambiguity
+      - Plausible lab values, imaging, endoscopy findings
+    </content>
+    <avoid>Deterministic clues, superfluous information, overly simplistic presentations</avoid>
+  </vignette_requirements>
 
-    <field name="question_structure">
-      <description>Each item set must contain EXACTLY THREE questions, one of each type</description>
-      <mandatory_types>
-        <type order="1">Diagnostic question</type>
-        <type order="2">Management question</type>
-        <type order="3">Follow-up question</type>
-      </mandatory_types>
-      <independence_rule critical="true">Each question is INDEPENDENT. New information in Question 1 does NOT carry over to Questions 2 or 3.</independence_rule>
-    </field>
-
-    <field name="question_components">
-      <part name="hypothesis">
-        <label>Part A: "If you were thinking of..."</label>
-        <description>A relevant hypothesis or clinical option</description>
-        <length_requirement critical="true">8-25 words (count carefully!)</length_requirement>
-        <format>Clear, affirmative statement; no double ideas</format>
-        <examples>
-          <example type="diagnosis" words="9">a diagnosis of seronegative celiac disease (SNCD)</example>
-          <example type="management" words="8">immediately starting a strict gluten-free diet</example>
-          <example type="follow-up" words="11">scheduling a repeat endoscopy in 6 months to assess histologic response</example>
-        </examples>
-        <avoid>
-          <item>Using "and/or" or presenting two options in one</item>
-          <item>Moral judgments</item>
-          <item>Hypotheses shorter than 8 words or longer than 25 words</item>
-        </avoid>
-      </part>
-
-      <part name="new_information">
-        <label>Part B: "...and then you find..."</label>
-        <description>New clinical information that modulates the hypothesis</description>
-        <length>8-30 words</length>
-        <types>
-          <type>Laboratory result</type>
-          <type>Physical exam finding</type>
-          <type>Imaging or endoscopy result</type>
-          <type>Patient-reported symptom or history</type>
-          <type>Response to intervention</type>
-        </types>
-        <goldilocks_principle>Should move the needle but not be deterministic or obvious</goldilocks_principle>
-        <examples>
-          <example>HLA testing is negative for both DQ2 and DQ8</example>
-          <example>the patient's hypertension is well-controlled on her current regimen</example>
-          <example>you have substituted her olmesartan with another class of antihypertensive</example>
-        </examples>
-        <avoid>
-          <item>Repeating data already in the vignette</item>
-          <item>Contradictory information</item>
-          <item>Definitive "spoilers" that make the answer obvious</item>
-        </avoid>
-      </part>
-
-      <part name="response_scale">
-        <label>Part C: "...this option would become:"</label>
-        <description>5-point Likert scale with task-specific anchors</description>
-        <format>Must use exact descriptors appropriate to question type</format>
-      </part>
-    </field>
-
-    <field name="likert_scales">
-      <description>Task-specific Likert scale anchors for clarity and consistency</description>
-      <scale type="diagnosis">
-        <task>Assessing the likelihood of a diagnosis</task>
-        <anchors>
-          <anchor value="-2">Very unlikely / Ruled out</anchor>
-          <anchor value="-1">Less likely</anchor>
-          <anchor value="0">Neither more nor less likely</anchor>
-          <anchor value="+1">More likely</anchor>
-          <anchor value="+2">Very likely / Confirmed</anchor>
-        </anchors>
-      </scale>
-      <scale type="management">
-        <task>Assessing the appropriateness of a therapeutic or investigative action</task>
-        <anchors>
-          <anchor value="-2">Strongly contraindicated</anchor>
-          <anchor value="-1">Contraindicated / Less indicated</anchor>
-          <anchor value="0">Neither more nor less indicated</anchor>
-          <anchor value="+1">Indicated</anchor>
-          <anchor value="+2">Strongly indicated / Essential</anchor>
-        </anchors>
-      </scale>
-      <scale type="follow_up">
-        <task>Assessing the appropriateness of a monitoring or long-term care strategy</task>
-        <anchors>
-          <anchor value="-2">Very inappropriate / Unnecessary</anchor>
-          <anchor value="-1">Less appropriate</anchor>
-          <anchor value="0">Neither more nor less appropriate</anchor>
-          <anchor value="+1">Appropriate</anchor>
-          <anchor value="+2">Essential / Standard of care</anchor>
-        </anchors>
-      </scale>
-      <critical_note>The neutral "0" anchor represents that new information has NO significant impact - a judgment requiring clinical experience</critical_note>
-    </field>
-
-    <field name="author_notes">
-      <description>Brief internal note explaining the clinical reasoning (NOT shown to panel)</description>
-      <length_requirement critical="true">Maximum 3 sentences per question (count periods carefully!)</length_requirement>
-      <max_characters>300 characters per question</max_characters>
-      <content>Explain the clinical rationale and how the new information affects expert judgment</content>
-      <examples>
-        <example sentences="2">Negative HLA-DQ2/DQ8 essentially rules out celiac disease (>99% sensitivity). This makes SNCD very unlikely.</example>
-        <example sentences="2">Olmesartan is a known cause of drug-induced enteropathy mimicking celiac disease. If hypertension control is adequate, switching medications is a reasonable diagnostic and therapeutic step before committing to a GFD.</example>
-      </examples>
-      <avoid>
-        <item>Explicit "correct answer" or answer keys</item>
-        <item>More than 3 sentences</item>
-        <item>Over 300 characters</item>
-      </avoid>
-    </field>
-  </quality_criteria>
+  <question_requirements>
+    <mandatory_sequence>
+      <q1>Diagnostic question</q1>
+      <q2>Management question</q2>
+      <q3>Follow-up question</q3>
+    </mandatory_sequence>
+    <hypothesis>8-25 words (Part A: "If you were thinking of...")</hypothesis>
+    <new_information>8-30 words (Part B: "...and then you find...")</new_information>
+    <author_notes>Max 3 sentences, max 300 characters - explain clinical reasoning</author_notes>
+  </question_requirements>
 
   <antipatterns>
-    <pattern>Deterministic vignette with obvious answers leading to unanimity</pattern>
-    <pattern>Double or ambiguous hypothesis ("celiac disease or Crohn's disease")</pattern>
-    <pattern critical="true">Hypothesis too short (&lt;8 words) or too long (&gt;25 words)</pattern>
-    <pattern critical="true">New information too short (&lt;8 words) or too long (&gt;30 words)</pattern>
-    <pattern>Repeated or contradictory new information</pattern>
-    <pattern critical="true">Using wrong Likert scale anchors for question type</pattern>
-    <pattern critical="true">Creating dependencies between questions (information carries over)</pattern>
-    <pattern critical="true">Author_notes with more than 3 sentences per question</pattern>
-    <pattern critical="true">Author_notes exceeding 300 characters per question</pattern>
-    <pattern>Generating fewer or more than 3 questions per vignette</pattern>
+    <avoid>Deterministic vignettes, double hypotheses, wrong Likert scales, dependencies between questions, author_notes >3 sentences or >300 chars</avoid>
   </antipatterns>
 
-  <task>
-    <instruction>Generate a complete SCT item set in English about celiac disease that meets ALL the above criteria.</instruction>
-    
-    <structure>
-      - ONE clinical vignette (120-240 words)
-      - THREE questions (Diagnostic, Management, Follow-up)
-      - Each question has: hypothesis (Part A), new information (Part B), and appropriate Likert scale (Part C)
-      - Author notes for each question explaining the reasoning
-    </structure>
+  <likert_scales>
+    <diagnosis>-2: Very unlikely/Ruled out | -1: Less likely | 0: No change | +1: More likely | +2: Very likely/Confirmed</diagnosis>
+    <management>-2: Strongly contraindicated | -1: Less indicated | 0: No change | +1: Indicated | +2: Strongly indicated/Essential</management>
+    <follow_up>-2: Very inappropriate | -1: Less appropriate | 0: No change | +1: Appropriate | +2: Essential/Standard</follow_up>
+  </likert_scales>
 
-    <parameters>
-      {{PARAMETERS}}
-    </parameters>
+  <parameters>
+    {{PARAMETERS}}
+  </parameters>
 
-    <output_format>Generate the complete SCT item set following the structured JSON format with all required fields.</output_format>
-  </task>
-
-  <critical_validation>
-    <title>CRITICAL VALIDATION REQUIREMENTS (must pass all checks)</title>
-    <requirement>Vignette: 120-240 words</requirement>
-    <requirement>Exactly 3 questions: one diagnostic, one management, one follow-up</requirement>
-    <requirement>Each hypothesis: 8-25 words (count carefully before submitting)</requirement>
+  <critical_requirements>
+    <requirement>Vignette: 120-240 words (aim 150-200)</requirement>
+    <requirement>3 questions: Diagnostic, Management, Follow-up (in that order)</requirement>
+    <requirement>Each hypothesis: 8-25 words</requirement>
     <requirement>Each new_information: 8-30 words</requirement>
-    <requirement>Each author_notes: Maximum 3 sentences (count periods carefully)</requirement>
-    <requirement>Each author_notes: Maximum 300 characters</requirement>
-    <requirement>Correct Likert scale anchors for each question type</requirement>
-    <requirement>Questions must be independent - no information carryover</requirement>
-    <requirement critical="ABSOLUTE">OPTIONS field MUST be EXACTLY ["+2", "+1", "0", "-1", "-2"] - DO NOT MODIFY THESE VALUES</requirement>
-    
-    <final_instruction>Double-check word counts, sentence counts, and question independence before generating the final output.</final_instruction>
-  </critical_validation>
+    <requirement>Each author_notes: ≤3 sentences, ≤300 characters</requirement>
+    <requirement>Questions INDEPENDENT - no information carryover</requirement>
+    <requirement critical="ABSOLUTE">OPTIONS = ["+2", "+1", "0", "-1", "-2"] - FIXED, NEVER CHANGE</requirement>
+  </critical_requirements>
 
-  <critical_options_warning>
-    <title>⚠️ CRITICAL: OPTIONS FIELD IS FIXED ⚠️</title>
-    <rule>The "options" field in your JSON output MUST be EXACTLY: ["+2", "+1", "0", "-1", "-2"]</rule>
-    <rule>DO NOT put descriptive text in the options array</rule>
-    <rule>DO NOT change the order or values</rule>
-    <rule>These are fixed scale values, NOT answer choices</rule>
-    <wrong_example>
-      "options": ["Very likely", "Likely", "Neutral", "Unlikely", "Very unlikely"]  ← WRONG!
-    </wrong_example>
-    <wrong_example>
-      "options": ["Continue treatment", "Stop treatment", "Increase dose"]  ← WRONG!
-    </wrong_example>
-    <correct_example>
-      "options": ["+2", "+1", "0", "-1", "-2"]  ← CORRECT!
-    </correct_example>
-  </critical_options_warning>
+  <options_warning>
+    ⚠️ CRITICAL: "options" field MUST be EXACTLY: ["+2", "+1", "0", "-1", "-2"]
+    DO NOT use descriptive text. These are FIXED scale values.
+    WRONG: ["Very likely", "Likely", ...] 
+    CORRECT: ["+2", "+1", "0", "-1", "-2"]
+  </options_warning>
 
   <example>
-    <title>Worked Example: Seronegative Villous Atrophy</title>
-    <vignette>A 68-year-old woman with a history of hypertension treated with olmesartan presents with a 9-month history of non-bloody diarrhea, a 10 kg weight loss, and iron deficiency anemia. Her IgA tTG and total IgA levels are normal. An upper endoscopy reveals scalloping of the duodenal folds, and biopsies show Marsh 3c villous atrophy.</vignette>
+    <title>Seronegative Villous Atrophy (Diagnostic Dilemma)</title>
+    <vignette>A 68-year-old woman with a history of hypertension treated with olmesartan for the past 5 years presents with a 9-month history of non-bloody diarrhea (4-6 bowel movements per day), progressive fatigue, and an unintentional 10 kg weight loss. She reports no fever, night sweats, or family history of celiac disease or inflammatory bowel disease. Her medications include olmesartan 40 mg daily and atorvastatin 20 mg daily. Laboratory tests reveal iron deficiency anemia with a hemoglobin of 9.5 g/dL (normal 12-16 g/dL), ferritin 8 ng/mL (normal 15-150 ng/mL), and albumin 3.2 g/dL (normal 3.5-5.0 g/dL). Her IgA tissue transglutaminase (tTG) is 8 U/mL (normal &lt;10 U/mL) and total IgA is 180 mg/dL (normal 70-400 mg/dL). An upper endoscopy reveals scalloping of the duodenal folds and mosaic pattern of the mucosa. Duodenal biopsies demonstrate Marsh 3c villous atrophy with increased intraepithelial lymphocytes. She is concerned about the findings and their implications.</vignette>
     
     <question1 type="diagnosis">
       <hypothesis>a diagnosis of seronegative celiac disease (SNCD)</hypothesis>
       <new_info>HLA testing is negative for both DQ2 and DQ8</new_info>
-      <scale>[-2: Very unlikely / Ruled out][-1: Less likely][0: Neither more nor less likely][+1: More likely][+2: Very likely / Confirmed]</scale>
+      <effect>this diagnosis would become</effect>
+      <scale_anchors>[-2: Very unlikely/Ruled out | -1: Less likely | 0: No change | +1: More likely | +2: Very likely/Confirmed]</scale_anchors>
+      <author_notes>Negative HLA-DQ2/DQ8 essentially rules out celiac disease (>99% sensitivity). This makes SNCD very unlikely.</author_notes>
     </question1>
     
     <question2 type="management">
       <hypothesis>immediately starting a strict gluten-free diet</hypothesis>
       <new_info>the patient's hypertension is well-controlled on her current regimen</new_info>
-      <scale>[-2: Strongly contraindicated][-1: Contraindicated / Less indicated][0: Neither more nor less indicated][+1: Indicated][+2: Strongly indicated / Essential]</scale>
+      <effect>this action would become</effect>
+      <scale_anchors>[-2: Strongly contraindicated | -1: Less indicated | 0: No change | +1: Indicated | +2: Strongly indicated/Essential]</scale_anchors>
+      <author_notes>Olmesartan is a known cause of drug-induced enteropathy mimicking celiac disease. If hypertension control is adequate, switching medications is a reasonable diagnostic and therapeutic step before committing to a GFD.</author_notes>
     </question2>
     
     <question3 type="follow_up">
       <hypothesis>scheduling a repeat endoscopy in 6 months to assess histologic response</hypothesis>
       <new_info>you have substituted her olmesartan with another class of antihypertensive</new_info>
-      <scale>[-2: Very inappropriate / Unnecessary][-1: Less appropriate][0: Neither more nor less appropriate][+1: Appropriate][+2: Essential / Standard of care]</scale>
+      <effect>this plan would become</effect>
+      <scale_anchors>[-2: Very inappropriate | -1: Less appropriate | 0: No change | +1: Appropriate | +2: Essential/Standard]</scale_anchors>
+      <author_notes>Switching from olmesartan makes reassessment highly appropriate to determine if enteropathy resolves without the drug. This supports follow-up endoscopy.</author_notes>
     </question3>
+    
+    <note>Each question is INDEPENDENT. New information in Q1, Q2, Q3 does not carry over between questions.</note>
   </example>
 </prompt>

@@ -4,13 +4,15 @@ Main entry point.
 This application generates N SCT (Script Concordance Test) items and saves them.
 The number of items is configured via NUM_SCTS_TO_GENERATE environment variable.
 Items are distributed across three clinical guidelines: American, British, and European.
+After generation, all items are exported to a CSV file for easy analysis.
 """
 
 import sys
+from pathlib import Path
 from typing import List
 
 from .config import settings
-from .generator import generate_items_per_guideline
+from .generator import export_generated_items_to_csv, generate_items_per_guideline
 from .logging import get_logger, setup_logging
 from .schemas import SCTItem
 
@@ -22,7 +24,7 @@ def generate_scts(
 ) -> List[SCTItem]:
     """
     Generate N SCT items distributed across three clinical guidelines.
-    
+
     Each guideline (American, British, European) will receive num_items items.
     Total generated = num_items * 3 guidelines.
 
@@ -136,7 +138,7 @@ def main() -> int:
     logger.info(f"  LLM Provider: {provider.upper()}")
     logger.info(f"  Items per guideline: {settings.num_scts_to_generate}")
     logger.info(f"  Total items: {settings.num_scts_to_generate * 3} (3 guidelines)")
-    logger.info(f"  Guidelines: American, British, European")
+    logger.info("  Guidelines: American, British, European")
     logger.info(f"  Model: {settings.model}")
     logger.info(f"  Domains: {', '.join(domains)} ({len(domains)} total)")
     logger.info("  All items: data/generated/")
@@ -156,6 +158,29 @@ def main() -> int:
         if not items:
             logger.error("\nNo items were generated successfully")
             return 1
+
+        # Export all generated items to CSV
+        logger.info("\n" + "=" * 70)
+        logger.info("EXPORTING TO CSV")
+        logger.info("=" * 70)
+
+        try:
+            generated_dir = Path("data/generated")
+            output_dir = Path("data/exports")
+
+            csv_path = export_generated_items_to_csv(
+                generated_dir=generated_dir, output_dir=output_dir
+            )
+
+            if csv_path:
+                logger.info(f"✓ CSV export successful: {csv_path}")
+            else:
+                logger.warning("CSV export skipped (no items found)")
+
+        except Exception as e:
+            logger.error(f"Failed to export CSV: {e}")
+            # Don't fail the entire process if CSV export fails
+            logger.warning("Continuing despite CSV export failure...")
 
         logger.info("\n" + "=" * 70)
         logger.info("APPLICATION COMPLETED SUCCESSFULLY")
