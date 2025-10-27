@@ -8,12 +8,16 @@ This project implements an automated system for generating high-quality Script C
 
 ### What are Script Concordance Tests?
 
-Script Concordance Tests (SCT) are assessment tools designed to evaluate clinical reasoning in situations of uncertainty. Each SCT item presents:
+Script Concordance Tests (SCT) are assessment tools designed to evaluate clinical reasoning in situations of uncertainty. Each SCT item consists of:
 
-1. A clinical vignette with controlled ambiguity
-2. A diagnostic, therapeutic, or test-related hypothesis
-3. New information that modulates the hypothesis
-4. A 5-point Likert scale to assess probability change
+1. **A clinical vignette** with controlled ambiguity (one patient case)
+2. **Three independent evaluation scenarios**:
+   - **Diagnosis scenario**: Evaluates diagnostic reasoning ("If you were thinking of [diagnosis]... and then you find that... this hypothesis becomes...")
+   - **Management scenario**: Evaluates treatment decisions ("If you were thinking of [intervention]... and then you find that... this action becomes...")
+   - **Follow-up scenario**: Evaluates monitoring strategies ("If you were thinking of [follow-up plan]... and then you find that... this plan becomes...")
+3. **A 5-point Likert scale** for each scenario to assess the change in likelihood/appropriateness
+
+**Important**: Each scenario is completely independent - information from one scenario does NOT carry over to the others.
 
 ### Key Features
 
@@ -202,14 +206,38 @@ Starting generation of 10 SCT items
 ```json
 {
   "domain": "HCC",
-  "vignette": "Clinical case (70-120 words)...",
-  "hypothesis": "Diagnostic or therapeutic proposition",
-  "new_information": "Additional data that modulates the hypothesis",
-  "question": "How does the probability of the hypothesis change?",
-  "options": ["+2", "+1", "0", "-1", "-2"],
-  "author_notes": "Clinical rationale for internal review"
+  "guideline": "american",
+  "vignette": "Clinical case (120-240 words)...",
+  "questions": [
+    {
+      "question_type": "diagnosis",
+      "hypothesis": "hepatocellular carcinoma",
+      "new_information": "AFP is 450 ng/mL with arterial enhancement on CT",
+      "effect_phrase": "this hypothesis becomes",
+      "options": ["+2", "+1", "0", "-1", "-2"],
+      "author_notes": "High AFP with arterial enhancement strongly supports HCC..."
+    },
+    {
+      "question_type": "management",
+      "hypothesis": "scheduling transarterial chemoembolization",
+      "new_information": "patient has portal vein thrombosis on imaging",
+      "effect_phrase": "this action becomes",
+      "options": ["+2", "+1", "0", "-1", "-2"],
+      "author_notes": "Portal vein thrombosis is a relative contraindication for TACE..."
+    },
+    {
+      "question_type": "followup",
+      "hypothesis": "repeating imaging in 3 months to assess response",
+      "new_information": "AFP has decreased from 450 to 80 ng/mL after treatment",
+      "effect_phrase": "this plan becomes",
+      "options": ["+2", "+1", "0", "-1", "-2"],
+      "author_notes": "Significant AFP decrease suggests good response; 3-month imaging is appropriate..."
+    }
+  ]
 }
 ```
+
+**Note**: Each generated item now includes **3 independent scenarios** (diagnosis, management, and follow-up) for comprehensive assessment.
 
 ## Validation System
 
@@ -224,31 +252,33 @@ The system performs automatic quantitative validation on all generated items:
 
 **Vignette:**
 - Required, not empty
-- Length: 70-120 words
+- Length: 120-240 words (aim for 150-200)
 - Single paragraph (no line breaks)
 
-**Hypothesis:**
-- Required, not empty
-- Length: 8-25 words
-- Must be affirmative (no question marks)
+**Questions Array:**
+- Exactly 3 questions required
+- Must be in order: diagnosis → management → followup
+- Each question is validated independently
 
-**New Information:**
-- Required, not empty
-- Length: 8-30 words
-- Declarative only (no questions)
-- Maximum 2 sentences
+**For Each Question:**
 
-**Question:**
-- Required, must be exactly: "How does the probability of the hypothesis change?"
-
-**Options:**
-- Required, exactly 5 elements
-- Must be: `["+2", "+1", "0", "-1", "-2"]` in that order
-
-**Author Notes:**
-- Optional
-- Maximum 300 characters
-- Maximum 3 sentences
+- **Question Type**: Must be "diagnosis", "management", or "followup"
+- **Hypothesis**: 
+  - Required, not empty
+  - Length: 8-25 words
+  - Must be affirmative (no question marks)
+- **New Information**:
+  - Required, not empty
+  - Length: 8-30 words
+  - Declarative only (no questions)
+  - Maximum 2 sentences
+- **Options**:
+  - Required, exactly 5 elements
+  - Must be: `["+2", "+1", "0", "-1", "-2"]` in that order
+- **Author Notes**:
+  - Optional
+  - Maximum 300 characters
+  - Maximum 3 sentences
 
 ### Validation Metadata
 
@@ -355,6 +385,39 @@ poetry run sct-generate
 - Failed items are also copied to `data/validation_failed/` (with error details)
 
 This redundancy ensures complete traceability and easy filtering for different use cases.
+
+## Recent Updates (October 2025)
+
+### New SCT Format: 3 Independent Evaluation Scenarios
+
+The system has been updated to match the authentic Script Concordance Test format used in medical education. Key changes:
+
+✅ **Each vignette now generates 3 independent scenarios**:
+- Diagnosis scenario (evaluates diagnostic reasoning)
+- Management scenario (evaluates treatment decisions)
+- Follow-up scenario (evaluates monitoring strategies)
+
+✅ **Authentic SCT format**: "If you were thinking of... and then you find that... this hypothesis/plan becomes..."
+
+✅ **Complete independence**: Each scenario starts fresh from the vignette - no information carryover
+
+✅ **Enhanced CSV export**: Generates 3 rows per vignette (one per scenario)
+
+✅ **Updated validation**: Checks all 3 scenarios independently
+
+### Migration Information
+
+- **Old format files**: Existing single-question JSON files remain valid for reference
+- **New generations**: All new items automatically use the 3-scenario format
+- **Documentation**: See `MIGRATION_GUIDE.md` (English) and `RESUMEN_CAMBIOS.md` (Spanish) for detailed information
+- **Testing**: Run `poetry run python test_new_format.py` to verify the new format
+
+### Benefits
+
+1. **More authentic**: Matches real SCT format from medical education
+2. **Comprehensive**: Each case assesses diagnosis, management, AND follow-up
+3. **3x more data**: Each vignette provides 3 evaluation scenarios
+4. **Better training**: Independent scenarios avoid compound dependencies
 
 ## Research Background
 

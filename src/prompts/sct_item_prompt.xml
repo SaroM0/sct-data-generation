@@ -2,19 +2,25 @@
 <prompt>
   <role>
     You are an expert hepatologist creating Script Concordance Test (SCT) items.
-    Generate ONE vignette with THREE independent questions (Diagnosis, Management, Follow-up).
+    Generate ONE clinical vignette with EXACTLY THREE independent evaluation scenarios (Diagnosis, Management, Follow-up).
   </role>
 
   <sct_fundamentals>
-    <purpose>The SCT assesses clinical reasoning in uncertainty—particularly suited to hepatology where diagnostic dilemmas, management complexities, and follow-up controversies defy simple algorithms.</purpose>
+    <purpose>The SCT assesses clinical reasoning in uncertainty—particularly suited to hepatology/gastroenterology where diagnostic dilemmas, management complexities, and follow-up controversies defy simple algorithms.</purpose>
     <structure>
-      <vignette>Clinical scenario presenting an "ill-defined" problem with controlled ambiguity</vignette>
-      <questions>THREE mandatory independent questions, each with:
-        - Part A: Hypothesis/option ("If you were thinking of...")
-        - Part B: New information ("...and then you find...")
-        - Part C: 5-point Likert scale (effect on hypothesis)
-      </questions>
-      <independence_rule>CRITICAL: Each question is INDEPENDENT. New information in Q1 does NOT carry to Q2 or Q3.</independence_rule>
+      <vignette>Clinical scenario presenting an "ill-defined" problem with controlled ambiguity (one patient case)</vignette>
+      <evaluation_scenarios>THREE mandatory independent evaluation scenarios:
+        1. DIAGNOSIS scenario: "If you were thinking of [diagnosis]... and then you find that [new info]... this hypothesis becomes..."
+        2. MANAGEMENT scenario: "If you were thinking of [intervention/plan]... and then you find that [new info]... this plan/action becomes..."
+        3. FOLLOW-UP scenario: "If you were thinking of [monitoring/follow-up plan]... and then you find that [new info]... this plan becomes..."
+      </evaluation_scenarios>
+      <format>
+        Each scenario follows the structure:
+        - "If you were thinking of..." → hypothesis or plan (8-25 words)
+        - "and then you find that..." → new clinical information (8-30 words)
+        - "this hypothesis/plan becomes..." → Likert scale evaluation
+      </format>
+      <independence_rule>CRITICAL: Each scenario is INDEPENDENT. New information in scenario 1 does NOT carry to scenarios 2 or 3. Each starts fresh from the vignette.</independence_rule>
     </structure>
   </sct_fundamentals>
 
@@ -35,25 +41,44 @@
     <avoid>Deterministic clues, superfluous information, overly simplistic presentations</avoid>
   </vignette_requirements>
 
-  <question_requirements>
+  <scenario_requirements>
     <mandatory_sequence>
-      <q1>Diagnostic question</q1>
-      <q2>Management question</q2>
-      <q3>Follow-up question</q3>
+      <scenario1>Diagnostic evaluation ("If you were thinking of [diagnosis]...")</scenario1>
+      <scenario2>Management evaluation ("If you were thinking of [treatment/intervention]...")</scenario2>
+      <scenario3>Follow-up evaluation ("If you were thinking of [monitoring/follow-up plan]...")</scenario3>
     </mandatory_sequence>
-    <hypothesis>8-25 words (Part A: "If you were thinking of...")</hypothesis>
-    <new_information>8-30 words (Part B: "...and then you find...")</new_information>
-    <author_notes>Max 3 sentences, max 300 characters - explain clinical reasoning</author_notes>
-  </question_requirements>
+    <hypothesis>8-25 words - the clinical thought/plan being evaluated</hypothesis>
+    <new_information>8-30 words - new clinical data that modulates the hypothesis</new_information>
+    <author_notes>Max 3 sentences, max 300 characters - explain clinical reasoning behind the answer</author_notes>
+    <independence>Each scenario is completely independent - do NOT carry information between scenarios</independence>
+  </scenario_requirements>
 
   <antipatterns>
-    <avoid>Deterministic vignettes, double hypotheses, wrong Likert scales, dependencies between questions, author_notes >3 sentences or >300 chars</avoid>
+    <avoid>Deterministic vignettes, double hypotheses, wrong Likert scales, dependencies between scenarios, author_notes >3 sentences or >300 chars, scenarios that build on each other</avoid>
   </antipatterns>
 
   <likert_scales>
-    <diagnosis>-2: Very unlikely/Ruled out | -1: Less likely | 0: No change | +1: More likely | +2: Very likely/Confirmed</diagnosis>
-    <management>-2: Strongly contraindicated | -1: Less indicated | 0: No change | +1: Indicated | +2: Strongly indicated/Essential</management>
-    <follow_up>-2: Very inappropriate | -1: Less appropriate | 0: No change | +1: Appropriate | +2: Essential/Standard</follow_up>
+    <diagnosis>
+      -2: Much less likely / Ruled out
+      -1: Less likely
+       0: Neither more nor less likely
+      +1: More likely
+      +2: Much more likely / Confirmed
+    </diagnosis>
+    <management>
+      -2: Much less appropriate / Contraindicated
+      -1: Less appropriate
+       0: Neither more nor less appropriate
+      +1: More appropriate
+      +2: Much more appropriate / Essential
+    </management>
+    <follow_up>
+      -2: Much less appropriate / Inappropriate
+      -1: Less appropriate
+       0: Neither more nor less appropriate
+      +1: More appropriate
+      +2: Much more appropriate / Essential
+    </follow_up>
   </likert_scales>
 
   <parameters>
@@ -61,14 +86,28 @@
   </parameters>
 
   <critical_requirements>
-    <requirement>Vignette: 120-240 words (aim 150-200)</requirement>
-    <requirement>3 questions: Diagnostic, Management, Follow-up (in that order)</requirement>
-    <requirement>Each hypothesis: 8-25 words</requirement>
-    <requirement>Each new_information: 8-30 words</requirement>
+    <requirement>Vignette: 120-240 words (aim 150-200) - ONE clinical case</requirement>
+    <requirement>3 evaluation scenarios: Diagnosis, Management, Follow-up (EXACTLY in that order)</requirement>
+    <requirement>Each hypothesis: 8-25 words (what you're thinking of)</requirement>
+    <requirement>Each new_information: 8-30 words (what you then find)</requirement>
     <requirement>Each author_notes: ≤3 sentences, ≤300 characters</requirement>
-    <requirement>Questions INDEPENDENT - no information carryover</requirement>
+    <requirement critical="INDEPENDENCE">Scenarios are INDEPENDENT - NO information carryover between them. Each scenario starts fresh from the vignette only.</requirement>
     <requirement critical="ABSOLUTE">OPTIONS = ["+2", "+1", "0", "-1", "-2"] - FIXED, NEVER CHANGE</requirement>
   </critical_requirements>
+
+  <output_format>
+    Generate a JSON with:
+    - domain: clinical subdomain
+    - guideline: american/british/european
+    - vignette: the clinical case (120-240 words)
+    - questions: array of exactly 3 objects, each with:
+      * question_type: "diagnosis" | "management" | "followup"
+      * hypothesis: what you're thinking of (8-25 words)
+      * new_information: what you then find (8-30 words)
+      * effect_phrase: "this hypothesis becomes" | "this plan becomes" | "this action becomes"
+      * options: ["+2", "+1", "0", "-1", "-2"]
+      * author_notes: clinical reasoning (≤3 sentences, ≤300 chars)
+  </output_format>
 
   <options_warning>
     ⚠️ CRITICAL: "options" field MUST be EXACTLY: ["+2", "+1", "0", "-1", "-2"]
@@ -78,33 +117,72 @@
   </options_warning>
 
   <example>
-    <title>Seronegative Villous Atrophy (Diagnostic Dilemma)</title>
+    <title>Seronegative Villous Atrophy - SCT Format</title>
     <vignette>A 68-year-old woman with a history of hypertension treated with olmesartan for the past 5 years presents with a 9-month history of non-bloody diarrhea (4-6 bowel movements per day), progressive fatigue, and an unintentional 10 kg weight loss. She reports no fever, night sweats, or family history of celiac disease or inflammatory bowel disease. Her medications include olmesartan 40 mg daily and atorvastatin 20 mg daily. Laboratory tests reveal iron deficiency anemia with a hemoglobin of 9.5 g/dL (normal 12-16 g/dL), ferritin 8 ng/mL (normal 15-150 ng/mL), and albumin 3.2 g/dL (normal 3.5-5.0 g/dL). Her IgA tissue transglutaminase (tTG) is 8 U/mL (normal &lt;10 U/mL) and total IgA is 180 mg/dL (normal 70-400 mg/dL). An upper endoscopy reveals scalloping of the duodenal folds and mosaic pattern of the mucosa. Duodenal biopsies demonstrate Marsh 3c villous atrophy with increased intraepithelial lymphocytes. She is concerned about the findings and their implications.</vignette>
     
-    <question1 type="diagnosis">
-      <hypothesis>a diagnosis of seronegative celiac disease (SNCD)</hypothesis>
-      <new_info>HLA testing is negative for both DQ2 and DQ8</new_info>
-      <effect>this diagnosis would become</effect>
-      <scale_anchors>[-2: Very unlikely/Ruled out | -1: Less likely | 0: No change | +1: More likely | +2: Very likely/Confirmed]</scale_anchors>
-      <author_notes>Negative HLA-DQ2/DQ8 essentially rules out celiac disease (>99% sensitivity). This makes SNCD very unlikely.</author_notes>
-    </question1>
+    <scenario1 type="diagnosis">
+      <if_thinking>seronegative celiac disease</if_thinking>
+      <then_find>HLA testing is negative for both DQ2 and DQ8</then_find>
+      <becomes>this hypothesis becomes</becomes>
+      <likert>[-2: Much less likely | -1: Less likely | 0: Neither more nor less likely | +1: More likely | +2: Much more likely]</likert>
+      <author_notes>Negative HLA-DQ2/DQ8 essentially rules out celiac disease (>99% sensitivity). This makes seronegative celiac very unlikely (-2).</author_notes>
+    </scenario1>
     
-    <question2 type="management">
-      <hypothesis>immediately starting a strict gluten-free diet</hypothesis>
-      <new_info>the patient's hypertension is well-controlled on her current regimen</new_info>
-      <effect>this action would become</effect>
-      <scale_anchors>[-2: Strongly contraindicated | -1: Less indicated | 0: No change | +1: Indicated | +2: Strongly indicated/Essential]</scale_anchors>
-      <author_notes>Olmesartan is a known cause of drug-induced enteropathy mimicking celiac disease. If hypertension control is adequate, switching medications is a reasonable diagnostic and therapeutic step before committing to a GFD.</author_notes>
-    </question2>
+    <scenario2 type="management">
+      <if_thinking>immediately starting a strict gluten-free diet</if_thinking>
+      <then_find>olmesartan-induced enteropathy is suspected based on medication history</then_find>
+      <becomes>this action becomes</becomes>
+      <likert>[-2: Much less appropriate | -1: Less appropriate | 0: Neither more nor less appropriate | +1: More appropriate | +2: Much more appropriate]</likert>
+      <author_notes>Olmesartan is a known cause of enteropathy mimicking celiac. Switching medications first is more appropriate than committing to lifelong GFD (-1 or -2).</author_notes>
+    </scenario2>
     
-    <question3 type="follow_up">
-      <hypothesis>scheduling a repeat endoscopy in 6 months to assess histologic response</hypothesis>
-      <new_info>you have substituted her olmesartan with another class of antihypertensive</new_info>
-      <effect>this plan would become</effect>
-      <scale_anchors>[-2: Very inappropriate | -1: Less appropriate | 0: No change | +1: Appropriate | +2: Essential/Standard]</scale_anchors>
-      <author_notes>Switching from olmesartan makes reassessment highly appropriate to determine if enteropathy resolves without the drug. This supports follow-up endoscopy.</author_notes>
-    </question3>
+    <scenario3 type="followup">
+      <if_thinking>scheduling a repeat endoscopy in 6 months</if_thinking>
+      <then_find>you have substituted olmesartan with amlodipine and symptoms have improved</then_find>
+      <becomes>this plan becomes</becomes>
+      <likert>[-2: Much less appropriate | -1: Less appropriate | 0: Neither more nor less appropriate | +1: More appropriate | +2: Much more appropriate]</likert>
+      <author_notes>Clinical improvement after olmesartan withdrawal supports drug-induced enteropathy. Repeat endoscopy becomes highly appropriate to confirm histologic resolution (+2).</author_notes>
+    </scenario3>
     
-    <note>Each question is INDEPENDENT. New information in Q1, Q2, Q3 does not carry over between questions.</note>
+    <critical_note>
+      ⚠️ INDEPENDENCE: Each scenario is COMPLETELY INDEPENDENT
+      - Scenario 1 (diagnosis): starts from vignette alone
+      - Scenario 2 (management): starts from vignette alone (NOT from scenario 1)
+      - Scenario 3 (followup): starts from vignette alone (NOT from scenarios 1 or 2)
+    </critical_note>
+    
+    <json_output>
+    {
+      "domain": "Celiac_Disease_Diagnostic_Dilemmas",
+      "guideline": "american",
+      "vignette": "A 68-year-old woman with a history of hypertension...",
+      "questions": [
+        {
+          "question_type": "diagnosis",
+          "hypothesis": "seronegative celiac disease",
+          "new_information": "HLA testing is negative for both DQ2 and DQ8",
+          "effect_phrase": "this hypothesis becomes",
+          "options": ["+2", "+1", "0", "-1", "-2"],
+          "author_notes": "Negative HLA-DQ2/DQ8 essentially rules out celiac disease (>99% sensitivity). This makes seronegative celiac very unlikely."
+        },
+        {
+          "question_type": "management",
+          "hypothesis": "immediately starting a strict gluten-free diet",
+          "new_information": "olmesartan-induced enteropathy is suspected based on medication history",
+          "effect_phrase": "this action becomes",
+          "options": ["+2", "+1", "0", "-1", "-2"],
+          "author_notes": "Olmesartan is a known cause of enteropathy mimicking celiac. Switching medications first is more appropriate than committing to lifelong GFD."
+        },
+        {
+          "question_type": "followup",
+          "hypothesis": "scheduling a repeat endoscopy in 6 months",
+          "new_information": "you have substituted olmesartan with amlodipine and symptoms have improved",
+          "effect_phrase": "this plan becomes",
+          "options": ["+2", "+1", "0", "-1", "-2"],
+          "author_notes": "Clinical improvement after olmesartan withdrawal supports drug-induced enteropathy. Repeat endoscopy becomes highly appropriate to confirm histologic resolution."
+        }
+      ]
+    }
+    </json_output>
   </example>
 </prompt>

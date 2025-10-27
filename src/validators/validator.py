@@ -25,7 +25,7 @@ class SCTValidator:
 
     def validate(self, item: SCTItem) -> ValidationResult:
         """
-        Validate a complete SCT item.
+        Validate a complete SCT item with 3 evaluation scenarios.
 
         Args:
             item: SCTItem object to validate.
@@ -37,14 +37,19 @@ class SCTValidator:
 
         logger.info(f"Validating SCT item - domain: {item.domain}")
 
-        # Validate each field
+        # Validate top-level fields
         self._validate_domain(item.domain, result)
         self._validate_vignette(item.vignette, result)
-        self._validate_hypothesis(item.hypothesis, result)
-        self._validate_new_information(item.new_information, item.vignette, result)
-        self._validate_question(item.question, result)
-        self._validate_options(item.options, result)
-        self._validate_author_notes(item.author_notes, result)
+
+        # Validate questions array
+        self._validate_questions_array(item.questions, result)
+
+        # Validate each question
+        for i, question in enumerate(item.questions, 1):
+            logger.debug(
+                f"Validating question {i}/{len(item.questions)} ({question.question_type})"
+            )
+            self._validate_question_item(question, i, item.vignette, result)
 
         # Log results
         if result.is_valid:
@@ -58,6 +63,47 @@ class SCTValidator:
             logger.warning(f"  WARNING: {warning}")
 
         return result
+
+    def _validate_questions_array(self, questions, result: ValidationResult):
+        """Validate the questions array structure."""
+        if not questions:
+            result.add_error("Questions array is required and cannot be empty")
+            return
+
+        if len(questions) != 3:
+            result.add_error(
+                f"Must have exactly 3 questions (diagnosis, management, followup). Got {len(questions)}"
+            )
+            return
+
+        # Check question types and order
+        expected_types = ["diagnosis", "management", "followup"]
+        actual_types = [q.question_type for q in questions]
+
+        if actual_types != expected_types:
+            result.add_error(
+                f"Questions must be in order: diagnosis, management, followup. Got: {actual_types}"
+            )
+
+    def _validate_question_item(
+        self, question, question_num: int, vignette: str, result: ValidationResult
+    ):
+        """Validate a single question within the SCT item."""
+        prefix = f"Question {question_num} ({question.question_type})"
+
+        # Validate hypothesis
+        self._validate_hypothesis_in_question(question.hypothesis, prefix, result)
+
+        # Validate new_information
+        self._validate_new_information_in_question(
+            question.new_information, vignette, prefix, result
+        )
+
+        # Validate options
+        self._validate_options_in_question(question.options, prefix, result)
+
+        # Validate author_notes
+        self._validate_author_notes_in_question(question.author_notes, prefix, result)
 
     def _validate_domain(self, domain: str, result: ValidationResult):
         """Validate domain field."""
@@ -94,100 +140,103 @@ class SCTValidator:
         if "\n" in vignette.strip():
             result.add_error("Vignette must be a single paragraph (no line breaks)")
 
-    def _validate_hypothesis(self, hypothesis: str, result: ValidationResult):
-        """Validate hypothesis field."""
+    def _validate_hypothesis_in_question(
+        self, hypothesis: str, prefix: str, result: ValidationResult
+    ):
+        """Validate hypothesis field in a question."""
         if not hypothesis or not hypothesis.strip():
-            result.add_error("Hypothesis is required and cannot be empty")
+            result.add_error(f"{prefix}: Hypothesis is required and cannot be empty")
             return
 
         # Word count
         word_count = len(hypothesis.split())
         if word_count < 8:
-            result.add_error(f"Hypothesis too short: {word_count} words (minimum: 8)")
+            result.add_error(
+                f"{prefix}: Hypothesis too short: {word_count} words (minimum: 8)"
+            )
         elif word_count > 25:
-            result.add_error(f"Hypothesis too long: {word_count} words (maximum: 25)")
+            result.add_error(
+                f"{prefix}: Hypothesis too long: {word_count} words (maximum: 25)"
+            )
 
         # Check for question format
         if hypothesis.strip().endswith("?"):
             result.add_error(
-                "Hypothesis must be an affirmative statement, not a question"
+                f"{prefix}: Hypothesis must be an affirmative statement, not a question"
             )
 
-    def _validate_new_information(
-        self, new_info: str, vignette: str, result: ValidationResult
+    def _validate_new_information_in_question(
+        self, new_info: str, vignette: str, prefix: str, result: ValidationResult
     ):
-        """Validate new_information field."""
+        """Validate new_information field in a question."""
         if not new_info or not new_info.strip():
-            result.add_error("New information is required and cannot be empty")
+            result.add_error(
+                f"{prefix}: New information is required and cannot be empty"
+            )
             return
 
         # Word count
         word_count = len(new_info.split())
         if word_count < 8:
             result.add_error(
-                f"New information too short: {word_count} words (minimum: 8)"
+                f"{prefix}: New information too short: {word_count} words (minimum: 8)"
             )
         elif word_count > 30:
             result.add_error(
-                f"New information too long: {word_count} words (maximum: 30)"
+                f"{prefix}: New information too long: {word_count} words (maximum: 30)"
             )
 
         # Check for question format
         if "?" in new_info:
-            result.add_error("New information must be declarative, not a question")
+            result.add_error(
+                f"{prefix}: New information must be declarative, not a question"
+            )
 
         # Check for multiple sentences (max 2)
         sentence_count = len([s for s in re.split(r"[.!?]+", new_info) if s.strip()])
         if sentence_count > 2:
             result.add_error(
-                f"New information has {sentence_count} sentences (maximum: 2)"
+                f"{prefix}: New information has {sentence_count} sentences (maximum: 2)"
             )
 
-    def _validate_question(self, question: str, result: ValidationResult):
-        """Validate question field."""
-        if not question or not question.strip():
-            result.add_error("Question is required and cannot be empty")
-            return
-
-        # Check for extra spaces
-        question_clean = question.strip()
-        if question != question_clean:
-            result.add_warning("Question has leading/trailing spaces")
-
-    def _validate_options(self, options: List[str], result: ValidationResult):
-        """Validate options field."""
+    def _validate_options_in_question(
+        self, options: List[str], prefix: str, result: ValidationResult
+    ):
+        """Validate options field in a question."""
         if not options:
-            result.add_error("Options are required and cannot be empty")
+            result.add_error(f"{prefix}: Options are required and cannot be empty")
             return
 
         # Check exact length
         if len(options) != 5:
             result.add_error(
-                f"Options must have exactly 5 elements (got {len(options)})"
+                f"{prefix}: Options must have exactly 5 elements (got {len(options)})"
             )
             return
 
         # Check exact values and order
         if options != self.VALID_OPTIONS:
             result.add_error(
-                f"Options must be exactly {self.VALID_OPTIONS} in that order (got {options})"
+                f"{prefix}: Options must be exactly {self.VALID_OPTIONS} in that order (got {options})"
             )
 
         # Check for duplicates
         if len(options) != len(set(options)):
-            result.add_error("Options contain duplicates")
+            result.add_error(f"{prefix}: Options contain duplicates")
 
         # Check for extra spaces or embedded descriptors
         for i, opt in enumerate(options):
             if opt != opt.strip():
-                result.add_error(f"Option {i} has extra spaces: '{opt}'")
+                result.add_error(f"{prefix}: Option {i} has extra spaces: '{opt}'")
             if len(opt) > 2:  # "+2" is 2 chars
                 result.add_error(
-                    f"Option {i} has embedded descriptor: '{opt}' (should be just '+2', '+1', etc.)"
+                    f"{prefix}: Option {i} has embedded descriptor: '{opt}' (should be just '+2', '+1', etc.)"
                 )
 
-    def _validate_author_notes(self, author_notes: str, result: ValidationResult):
-        """Validate author_notes field (optional)."""
+    def _validate_author_notes_in_question(
+        self, author_notes: str, prefix: str, result: ValidationResult
+    ):
+        """Validate author_notes field in a question (optional)."""
         if not author_notes or not author_notes.strip():
             # Optional field, no error
             return
@@ -195,7 +244,7 @@ class SCTValidator:
         # Check length
         if len(author_notes) > 300:
             result.add_error(
-                f"Author notes too long: {len(author_notes)} characters (maximum: 300)"
+                f"{prefix}: Author notes too long: {len(author_notes)} characters (maximum: 300)"
             )
 
         # Check sentence count
@@ -204,7 +253,7 @@ class SCTValidator:
         )
         if sentence_count > 3:
             result.add_error(
-                f"Author notes has {sentence_count} sentences (maximum: 3)"
+                f"{prefix}: Author notes has {sentence_count} sentences (maximum: 3)"
             )
 
 

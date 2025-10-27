@@ -14,7 +14,7 @@ logger = get_logger(__name__)
 
 def export_to_csv(output_path: Path, items: List[SCTItem]) -> None:
     """
-    Export SCT items to CSV format.
+    Export SCT items to CSV format with multiple questions per vignette.
 
     Args:
         output_path: Path where the CSV file should be saved.
@@ -31,9 +31,10 @@ def export_to_csv(output_path: Path, items: List[SCTItem]) -> None:
         "domain",
         "guideline",
         "vignette",
+        "question_type",
         "hypothesis",
         "new_information",
-        "question",
+        "effect_phrase",
         "options",  # Will be joined as string
         "author_notes",
     ]
@@ -43,20 +44,23 @@ def export_to_csv(output_path: Path, items: List[SCTItem]) -> None:
         writer.writeheader()
 
         for item in items:
-            # Convert options list to string
-            options_str = ", ".join(item.options)
+            # Each item now has 3 questions, so we create 3 rows
+            for question in item.questions:
+                # Convert options list to string
+                options_str = ", ".join(question.options)
 
-            row = {
-                "domain": item.domain,
-                "guideline": item.guideline or "",
-                "vignette": item.vignette,
-                "hypothesis": item.hypothesis,
-                "new_information": item.new_information,
-                "question": item.question,
-                "options": options_str,
-                "author_notes": item.author_notes,
-            }
-            writer.writerow(row)
+                row = {
+                    "domain": item.domain,
+                    "guideline": item.guideline or "",
+                    "vignette": item.vignette,
+                    "question_type": question.question_type,
+                    "hypothesis": question.hypothesis,
+                    "new_information": question.new_information,
+                    "effect_phrase": question.effect_phrase,
+                    "options": options_str,
+                    "author_notes": question.author_notes,
+                }
+                writer.writerow(row)
 
     logger.info(f"✓ CSV export complete: {output_path}")
 
