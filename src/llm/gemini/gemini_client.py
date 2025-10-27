@@ -1,5 +1,6 @@
 """Gemini client."""
 
+import copy
 from typing import Any, Type
 
 from google import genai
@@ -12,34 +13,93 @@ from ...logging import get_logger
 logger = get_logger(__name__)
 
 
+def _resolve_refs(schema_dict: dict, definitions: dict) -> dict:
+    """
+    Recursively resolve $ref references in a JSON schema.
+    
+    Args:
+        schema_dict: Schema dictionary that may contain $ref.
+        definitions: Dictionary of definitions to resolve references from.
+    
+    Returns:
+        Schema with all $ref resolved.
+    """
+    if isinstance(schema_dict, dict):
+        # If this is a $ref, resolve it
+        if "$ref" in schema_dict:
+            ref_path = schema_dict["$ref"]
+            # Extract the definition name (e.g., "#/$defs/SCTQuestion" -> "SCTQuestion")
+            if ref_path.startswith("#/$defs/"):
+                def_name = ref_path.split("/")[-1]
+                if def_name in definitions:
+                    # Return a resolved copy of the definition
+                    resolved = definitions[def_name].copy()
+                    return _resolve_refs(resolved, definitions)
+            return schema_dict
+        
+        # Recursively resolve in nested dictionaries
+        result = {}
+        for key, value in schema_dict.items():
+            if isinstance(value, dict):
+                result[key] = _resolve_refs(value, definitions)
+            elif isinstance(value, list):
+                result[key] = [
+                    _resolve_refs(item, definitions) if isinstance(item, dict) else item
+                    for item in value
+                ]
+            else:
+                result[key] = value
+        return result
+    
+    return schema_dict
+
+
 def _clean_schema_for_gemini(schema_dict: dict) -> dict:
     """
-    Remove fields not supported by Gemini from a JSON schema.
-
+    Clean and prepare a JSON schema for Gemini API.
+    
+    This function:
+    1. Resolves all $ref references by inlining definitions
+    2. Removes fields not supported by Gemini
+    
     Args:
         schema_dict: Dictionary representation of a JSON schema.
 
     Returns:
-        Cleaned schema dictionary.
+        Cleaned schema dictionary ready for Gemini.
     """
-    if isinstance(schema_dict, dict):
-        # Remove fields not supported by Gemini
-        schema_dict.pop("examples", None)
-        schema_dict.pop("example", None)
-        schema_dict.pop("title", None)
-        schema_dict.pop("description", None)
-
-        # Recursively clean nested schemas
-        for key, value in schema_dict.items():
-            if isinstance(value, dict):
-                schema_dict[key] = _clean_schema_for_gemini(value)
-            elif isinstance(value, list):
-                schema_dict[key] = [
-                    _clean_schema_for_gemini(item) if isinstance(item, dict) else item
-                    for item in value
-                ]
-
-    return schema_dict
+    # Make a deep copy to avoid modifying the original
+    schema_copy = copy.deepcopy(schema_dict)
+    
+    # Extract $defs if present
+    definitions = schema_copy.pop("$defs", {})
+    
+    # Resolve all $ref references
+    if definitions:
+        schema_copy = _resolve_refs(schema_copy, definitions)
+    
+    # Now clean unsupported fields recursively
+    def clean_fields(obj):
+        if isinstance(obj, dict):
+            # Remove fields not supported by Gemini
+            obj.pop("examples", None)
+            obj.pop("example", None)
+            obj.pop("title", None)
+            obj.pop("description", None)
+            obj.pop("$defs", None)
+            
+            # Recursively clean nested objects
+            for key, value in obj.items():
+                if isinstance(value, dict):
+                    obj[key] = clean_fields(value)
+                elif isinstance(value, list):
+                    obj[key] = [
+                        clean_fields(item) if isinstance(item, dict) else item
+                        for item in value
+                    ]
+        return obj
+    
+    return clean_fields(schema_copy)
 
 
 class GeminiClient:
