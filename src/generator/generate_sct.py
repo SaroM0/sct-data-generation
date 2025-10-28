@@ -59,11 +59,23 @@ class SCTGenerator:
         with open(self.prompt_template_path, "r", encoding="utf-8") as f:
             self.prompt_template = f.read()
 
-        # Load guideline if specified
+        # Load guideline if specified (use summary version to save tokens)
         self.guideline_content = None
         if guideline:
-            guideline_path = prompts_dir / f"{guideline}_guideline.xml"
-            if not guideline_path.exists():
+            # Try to load the summary version first (much shorter, saves tokens)
+            guideline_summary_path = prompts_dir / f"{guideline}_guideline_summary.xml"
+            guideline_full_path = prompts_dir / f"{guideline}_guideline.xml"
+
+            if guideline_summary_path.exists():
+                guideline_path = guideline_summary_path
+                logger.info(f"Using summary version of {guideline} guideline")
+            elif guideline_full_path.exists():
+                guideline_path = guideline_full_path
+                logger.warning(
+                    f"Using full {guideline} guideline - this consumes many tokens. "
+                    f"Consider creating a summary version at: {guideline_summary_path.name}"
+                )
+            else:
                 raise FileNotFoundError(
                     f"Guideline not found: {guideline_path}. "
                     f"Available guidelines: american, british, european"
