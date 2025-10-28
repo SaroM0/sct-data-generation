@@ -14,7 +14,10 @@ logger = get_logger(__name__)
 
 def export_to_csv(output_path: Path, items: List[SCTItem]) -> None:
     """
-    Export SCT items to CSV format with multiple questions per vignette.
+    Export SCT items to CSV format with hierarchical structure.
+    
+    The vignette appears only once per case, with questions below it.
+    This reduces redundancy and makes the CSV more readable.
 
     Args:
         output_path: Path where the CSV file should be saved.
@@ -44,25 +47,43 @@ def export_to_csv(output_path: Path, items: List[SCTItem]) -> None:
         writer.writeheader()
 
         for item in items:
-            # Each item now has 3 questions, so we create 3 rows
-            for question in item.questions:
+            # Each item has 3 questions
+            # First question includes all case information
+            # Subsequent questions leave domain/guideline/vignette empty for hierarchy
+            for idx, question in enumerate(item.questions):
                 # Convert options list to string
                 options_str = ", ".join(question.options)
 
-                row = {
-                    "domain": item.domain,
-                    "guideline": item.guideline or "",
-                    "vignette": item.vignette,
-                    "question_type": question.question_type,
-                    "hypothesis": question.hypothesis,
-                    "new_information": question.new_information,
-                    "effect_phrase": question.effect_phrase,
-                    "options": options_str,
-                    "author_notes": question.author_notes,
-                }
+                # First question (idx=0): include full case info
+                # Subsequent questions: leave case fields empty for hierarchical structure
+                if idx == 0:
+                    row = {
+                        "domain": item.domain,
+                        "guideline": item.guideline or "",
+                        "vignette": item.vignette,
+                        "question_type": question.question_type,
+                        "hypothesis": question.hypothesis,
+                        "new_information": question.new_information,
+                        "effect_phrase": question.effect_phrase,
+                        "options": options_str,
+                        "author_notes": question.author_notes,
+                    }
+                else:
+                    row = {
+                        "domain": "",
+                        "guideline": "",
+                        "vignette": "",
+                        "question_type": question.question_type,
+                        "hypothesis": question.hypothesis,
+                        "new_information": question.new_information,
+                        "effect_phrase": question.effect_phrase,
+                        "options": options_str,
+                        "author_notes": question.author_notes,
+                    }
                 writer.writerow(row)
 
     logger.info(f"✓ CSV export complete: {output_path}")
+    logger.info(f"  Format: Hierarchical (vignette shown once per case, {len(items)} cases total)")
 
 
 def load_all_generated_items(generated_dir: Path) -> List[SCTItem]:
