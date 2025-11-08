@@ -1,5 +1,6 @@
 """SCT Item Generator using OpenAI or Gemini Structured Outputs."""
 
+import time
 from pathlib import Path
 from typing import Literal, Optional
 
@@ -12,6 +13,10 @@ from ..validators.utils import save_validated_sct
 from .validator_model import SCTModelValidator
 
 logger = get_logger(__name__)
+
+# Retry configuration
+MAX_RETRIES = 3
+RETRY_DELAY_BASE = 5  # Base delay in seconds for exponential backoff
 
 # Type for guideline selection
 GuidelineType = Literal["american", "british", "european"]
@@ -343,16 +348,46 @@ def generate_multiple_items(
 
     for i in range(num_items):
         logger.info(f"Generating item {i + 1}/{num_items}...")
-        try:
-            item = generator.generate(
-                model, topic, domain, difficulty, additional_context
-            )
-            items.append(item)
-            logger.info(f"✓ Item {i + 1}/{num_items} completed")
-        except Exception as e:
-            logger.error(f"✗ Failed to generate item {i + 1}/{num_items}: {e}")
-            # Continue with next item instead of failing completely
-            continue
+        
+        # Retry logic for temporary errors
+        retry_count = 0
+        item_generated = False
+        
+        while retry_count <= MAX_RETRIES and not item_generated:
+            try:
+                item = generator.generate(
+                    model, topic, domain, difficulty, additional_context
+                )
+                items.append(item)
+                logger.info(f"✓ Item {i + 1}/{num_items} completed")
+                item_generated = True
+            except Exception as e:
+                error_str = str(e)
+                
+                # Check if it's a retryable error (503, 429, timeout, etc.)
+                is_retryable = (
+                    "503" in error_str or
+                    "429" in error_str or
+                    "UNAVAILABLE" in error_str or
+                    "overloaded" in error_str.lower() or
+                    "rate limit" in error_str.lower() or
+                    "timeout" in error_str.lower()
+                )
+                
+                if is_retryable and retry_count < MAX_RETRIES:
+                    retry_count += 1
+                    delay = RETRY_DELAY_BASE * (2 ** (retry_count - 1))  # Exponential backoff
+                    logger.warning(
+                        f"✗ Failed to generate item {i + 1}/{num_items} (attempt {retry_count}/{MAX_RETRIES}): {e}"
+                    )
+                    logger.info(f"Retrying in {delay} seconds...")
+                    time.sleep(delay)
+                else:
+                    logger.error(f"✗ Failed to generate item {i + 1}/{num_items}: {e}")
+                    if is_retryable:
+                        logger.error(f"Max retries ({MAX_RETRIES}) reached. Giving up.")
+                    # Continue with next item instead of failing completely
+                    break
 
     logger.info(f"Successfully generated {len(items)}/{num_items} items")
     return items
