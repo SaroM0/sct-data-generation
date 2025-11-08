@@ -34,12 +34,16 @@ def export_to_csv(output_path: Path, items: List[SCTItem]) -> None:
         "domain",
         "guideline",
         "vignette",
+        "item_author_notes",
+        "validator_guideline",
+        "validator_notes",
         "question_type",
         "hypothesis",
         "new_information",
         "effect_phrase",
         "options",  # Will be joined as string
         "author_notes",
+        "validator_selected_option",
     ]
 
     with open(output_path, "w", newline="", encoding="utf-8") as csvfile:
@@ -53,6 +57,14 @@ def export_to_csv(output_path: Path, items: List[SCTItem]) -> None:
             for idx, question in enumerate(item.questions):
                 # Convert options list to string
                 options_str = ", ".join(question.options)
+                
+                # Get validator response for this question if available
+                validator_option = ""
+                if item.validator_result:
+                    for validator_response in item.validator_result.validator_responses:
+                        if validator_response.question_type == question.question_type:
+                            validator_option = validator_response.selected_option
+                            break
 
                 # First question (idx=0): include full case info
                 # Subsequent questions: leave case fields empty for hierarchical structure
@@ -61,24 +73,32 @@ def export_to_csv(output_path: Path, items: List[SCTItem]) -> None:
                         "domain": item.domain,
                         "guideline": item.guideline or "",
                         "vignette": item.vignette,
+                        "item_author_notes": item.author_notes or "",
+                        "validator_guideline": item.validator_result.validator_guideline if item.validator_result else "",
+                        "validator_notes": item.validator_result.validator_notes if item.validator_result else "",
                         "question_type": question.question_type,
                         "hypothesis": question.hypothesis,
                         "new_information": question.new_information,
                         "effect_phrase": question.effect_phrase,
                         "options": options_str,
                         "author_notes": question.author_notes,
+                        "validator_selected_option": validator_option,
                     }
                 else:
                     row = {
                         "domain": "",
                         "guideline": "",
                         "vignette": "",
+                        "item_author_notes": "",
+                        "validator_guideline": "",
+                        "validator_notes": "",
                         "question_type": question.question_type,
                         "hypothesis": question.hypothesis,
                         "new_information": question.new_information,
                         "effect_phrase": question.effect_phrase,
                         "options": options_str,
                         "author_notes": question.author_notes,
+                        "validator_selected_option": validator_option,
                     }
                 writer.writerow(row)
 

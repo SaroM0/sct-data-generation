@@ -9,6 +9,7 @@ from ..logging import get_logger
 from ..schemas import SCTItem
 from ..validators import validate_sct_item
 from ..validators.utils import save_validated_sct
+from .validator_model import SCTModelValidator
 
 logger = get_logger(__name__)
 
@@ -211,7 +212,9 @@ Use this guideline as reference to ensure clinical accuracy and reflect real-wor
             "Ensure all fields meet the quality specifications. "
             "CRITICAL REQUIREMENTS: "
             "1. The 'options' field MUST be exactly ['+2', '+1', '0', '-1', '-2'] - DO NOT modify these fixed scale values. "
-            "2. The 'vignette' MUST be 120-240 words (aim for 150-200 words for optimal depth). COUNT CAREFULLY."
+            "2. The 'vignette' MUST be 120-240 words (aim for 150-200 words for optimal depth). COUNT CAREFULLY. "
+            "3. Each question's 'author_notes' MUST end with the expected scale value in parentheses, e.g., '(+2)', '(-1)', '(0)'. "
+            "4. Include an optional 'author_notes' field at the item level explaining the overall clinical context (max 500 characters)."
         )
 
         try:
@@ -249,6 +252,22 @@ Use this guideline as reference to ensure clinical accuracy and reflect real-wor
                     )
                     for warning in validation_result.warnings:
                         logger.warning(f"  - {warning}")
+
+            # Model-based validation with different guideline
+            logger.info("Starting model-based validation with different guideline...")
+            try:
+                model_validator = SCTModelValidator(provider=self.provider)
+                validator_result = model_validator.validate(sct_item, model)
+                sct_item.validator_result = validator_result
+                logger.info(
+                    f"✓ Model validation completed using {validator_result.validator_guideline} guideline"
+                )
+            except Exception as e:
+                logger.warning(
+                    f"Model-based validation failed: {e}. "
+                    "Item will be saved without validator result."
+                )
+                # Continue without validator result - item is still valid
 
             # Save the item to appropriate folders
             save_validated_sct(sct_item, validation_result)
@@ -377,22 +396,29 @@ def generate_items_per_guideline(
         logger.info(f"Starting generation for {guideline.upper()} guideline")
         logger.info(f"{'=' * 60}\n")
 
-        items = generate_multiple_items(
-            model=model,
-            num_items=items_per_guideline,
-            provider=provider,
-            guideline=guideline,
-            topic=topic,
-            domain=domain,
-            difficulty=difficulty,
-            additional_context=additional_context,
-        )
+        try:
+            items = generate_multiple_items(
+                model=model,
+                num_items=items_per_guideline,
+                provider=provider,
+                guideline=guideline,
+                topic=topic,
+                domain=domain,
+                difficulty=difficulty,
+                additional_context=additional_context,
+            )
 
-        results[guideline] = items
-        logger.info(
-            f"\n✓ Completed {guideline} guideline: "
-            f"{len(items)}/{items_per_guideline} items generated\n"
-        )
+            results[guideline] = items
+            logger.info(
+                f"\n✓ Completed {guideline} guideline: "
+                f"{len(items)}/{items_per_guideline} items generated\n"
+            )
+        except Exception as e:
+            logger.error(
+                f"\n✗ Failed to generate items for {guideline} guideline: {e}"
+            )
+            logger.error(f"Continuing with next guideline...\n")
+            results[guideline] = []  # Store empty list to maintain structure
 
     # Summary
     total_generated = sum(len(items) for items in results.values())

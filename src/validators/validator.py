@@ -40,6 +40,8 @@ class SCTValidator:
         # Validate top-level fields
         self._validate_domain(item.domain, result)
         self._validate_vignette(item.vignette, result)
+        if item.author_notes:
+            self._validate_item_author_notes(item.author_notes, result)
 
         # Validate questions array
         self._validate_questions_array(item.questions, result)
@@ -236,9 +238,9 @@ class SCTValidator:
     def _validate_author_notes_in_question(
         self, author_notes: str, prefix: str, result: ValidationResult
     ):
-        """Validate author_notes field in a question (optional)."""
+        """Validate author_notes field in a question."""
         if not author_notes or not author_notes.strip():
-            # Optional field, no error
+            result.add_error(f"{prefix}: Author notes is required and cannot be empty")
             return
 
         # Check length
@@ -254,6 +256,28 @@ class SCTValidator:
         if sentence_count > 3:
             result.add_error(
                 f"{prefix}: Author notes has {sentence_count} sentences (maximum: 3)"
+            )
+
+        # Check that it ends with expected scale value in parentheses
+        # Valid formats: (+2), (+1), (0), (-1), (-2)
+        scale_pattern = re.compile(r'\([+-][12]|\(0\)')
+        author_notes_stripped = author_notes.strip()
+        if not scale_pattern.search(author_notes_stripped) or not author_notes_stripped.endswith(('(+2)', '(+1)', '(0)', '(-1)', '(-2)')):
+            result.add_error(
+                f"{prefix}: Author notes must end with expected scale value in parentheses, e.g., '(+2)', '(-1)', '(0)'"
+            )
+
+    def _validate_item_author_notes(
+        self, author_notes: str, result: ValidationResult
+    ):
+        """Validate author_notes field at item level (optional)."""
+        if not author_notes or not author_notes.strip():
+            return
+
+        # Check length
+        if len(author_notes) > 500:
+            result.add_error(
+                f"Item-level author notes too long: {len(author_notes)} characters (maximum: 500)"
             )
 
 

@@ -49,7 +49,7 @@
     </mandatory_sequence>
     <hypothesis>8-25 words - the clinical thought/plan being evaluated</hypothesis>
     <new_information>8-30 words - new clinical data that modulates the hypothesis</new_information>
-    <author_notes>Max 3 sentences, max 300 characters - explain clinical reasoning behind the answer</author_notes>
+    <author_notes>Max 3 sentences, max 300 characters - explain clinical reasoning behind the answer. MUST end with the expected scale value in parentheses, e.g., "(+2)", "(-1)", "(0)"</author_notes>
     <independence>Each scenario is completely independent - do NOT carry information between scenarios</independence>
   </scenario_requirements>
 
@@ -90,7 +90,8 @@
     <requirement>3 evaluation scenarios: Diagnosis, Management, Follow-up (EXACTLY in that order)</requirement>
     <requirement>Each hypothesis: 8-25 words (what you're thinking of)</requirement>
     <requirement>Each new_information: 8-30 words (what you then find)</requirement>
-    <requirement>Each author_notes: ≤3 sentences, ≤300 characters</requirement>
+    <requirement>Each question author_notes: ≤3 sentences, ≤300 characters, MUST end with expected scale value in parentheses like "(+2)" or "(-1)"</requirement>
+    <requirement>Item-level author_notes: Optional general notes explaining overall clinical context (max 500 characters)</requirement>
     <requirement critical="INDEPENDENCE">Scenarios are INDEPENDENT - NO information carryover between them. Each scenario starts fresh from the vignette only.</requirement>
     <requirement critical="ABSOLUTE">OPTIONS = ["+2", "+1", "0", "-1", "-2"] - FIXED, NEVER CHANGE</requirement>
   </critical_requirements>
@@ -100,13 +101,14 @@
     - domain: clinical subdomain
     - guideline: american/british/european
     - vignette: the clinical case (120-240 words)
+    - author_notes: (optional) general notes explaining overall clinical context and reasoning (max 500 chars)
     - questions: array of exactly 3 objects, each with:
       * question_type: "diagnosis" | "management" | "followup"
       * hypothesis: what you're thinking of (8-25 words)
       * new_information: what you then find (8-30 words)
       * effect_phrase: "this hypothesis becomes" | "this plan becomes" | "this action becomes"
       * options: ["+2", "+1", "0", "-1", "-2"]
-      * author_notes: clinical reasoning (≤3 sentences, ≤300 chars)
+      * author_notes: clinical reasoning (≤3 sentences, ≤300 chars) MUST end with expected scale value in parentheses like "(+2)", "(-1)", "(0)"
   </output_format>
 
   <options_warning>
@@ -125,7 +127,7 @@
       <then_find>HLA testing is negative for both DQ2 and DQ8</then_find>
       <becomes>this hypothesis becomes</becomes>
       <likert>[-2: Much less likely | -1: Less likely | 0: Neither more nor less likely | +1: More likely | +2: Much more likely]</likert>
-      <author_notes>Negative HLA-DQ2/DQ8 essentially rules out celiac disease (>99% sensitivity). This makes seronegative celiac very unlikely (-2).</author_notes>
+      <author_notes>Negative HLA-DQ2/DQ8 essentially rules out celiac disease (>99% sensitivity). This makes seronegative celiac very unlikely. (-2)</author_notes>
     </scenario1>
     
     <scenario2 type="management">
@@ -133,7 +135,7 @@
       <then_find>olmesartan-induced enteropathy is suspected based on medication history</then_find>
       <becomes>this action becomes</becomes>
       <likert>[-2: Much less appropriate | -1: Less appropriate | 0: Neither more nor less appropriate | +1: More appropriate | +2: Much more appropriate]</likert>
-      <author_notes>Olmesartan is a known cause of enteropathy mimicking celiac. Switching medications first is more appropriate than committing to lifelong GFD (-1 or -2).</author_notes>
+      <author_notes>Olmesartan is a known cause of enteropathy mimicking celiac. Switching medications first is more appropriate than committing to lifelong GFD. (-2)</author_notes>
     </scenario2>
     
     <scenario3 type="followup">
@@ -141,7 +143,7 @@
       <then_find>you have substituted olmesartan with amlodipine and symptoms have improved</then_find>
       <becomes>this plan becomes</becomes>
       <likert>[-2: Much less appropriate | -1: Less appropriate | 0: Neither more nor less appropriate | +1: More appropriate | +2: Much more appropriate]</likert>
-      <author_notes>Clinical improvement after olmesartan withdrawal supports drug-induced enteropathy. Repeat endoscopy becomes highly appropriate to confirm histologic resolution (+2).</author_notes>
+      <author_notes>Clinical improvement after olmesartan withdrawal supports drug-induced enteropathy. Repeat endoscopy becomes highly appropriate to confirm histologic resolution. (+2)</author_notes>
     </scenario3>
     
     <critical_note>
@@ -156,6 +158,7 @@
       "domain": "Celiac_Disease_Diagnostic_Dilemmas",
       "guideline": "american",
       "vignette": "A 68-year-old woman with a history of hypertension...",
+      "author_notes": "This case illustrates the diagnostic challenge of seronegative villous atrophy, highlighting the importance of considering alternative etiologies beyond celiac disease, particularly medication-induced enteropathy.",
       "questions": [
         {
           "question_type": "diagnosis",
@@ -163,7 +166,7 @@
           "new_information": "HLA testing is negative for both DQ2 and DQ8",
           "effect_phrase": "this hypothesis becomes",
           "options": ["+2", "+1", "0", "-1", "-2"],
-          "author_notes": "Negative HLA-DQ2/DQ8 essentially rules out celiac disease (>99% sensitivity). This makes seronegative celiac very unlikely."
+          "author_notes": "Negative HLA-DQ2/DQ8 essentially rules out celiac disease (>99% sensitivity). This makes seronegative celiac very unlikely. (-2)"
         },
         {
           "question_type": "management",
@@ -171,7 +174,7 @@
           "new_information": "olmesartan-induced enteropathy is suspected based on medication history",
           "effect_phrase": "this action becomes",
           "options": ["+2", "+1", "0", "-1", "-2"],
-          "author_notes": "Olmesartan is a known cause of enteropathy mimicking celiac. Switching medications first is more appropriate than committing to lifelong GFD."
+          "author_notes": "Olmesartan is a known cause of enteropathy mimicking celiac. Switching medications first is more appropriate than committing to lifelong GFD. (-2)"
         },
         {
           "question_type": "followup",
@@ -179,7 +182,7 @@
           "new_information": "you have substituted olmesartan with amlodipine and symptoms have improved",
           "effect_phrase": "this plan becomes",
           "options": ["+2", "+1", "0", "-1", "-2"],
-          "author_notes": "Clinical improvement after olmesartan withdrawal supports drug-induced enteropathy. Repeat endoscopy becomes highly appropriate to confirm histologic resolution."
+          "author_notes": "Clinical improvement after olmesartan withdrawal supports drug-induced enteropathy. Repeat endoscopy becomes highly appropriate to confirm histologic resolution. (+2)"
         }
       ]
     }

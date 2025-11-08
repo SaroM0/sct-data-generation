@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<prompt>
+  <role>
+    You are validating a Script Concordance Test (SCT) item.
+    Your task is to evaluate the clinical reasoning scenarios in the provided SCT item and provide baseline responses.
+    You will use a clinical guideline DIFFERENT from the one used to create this item.
+  </role>
+
+  <validation_task>
+    <purpose>
+      Validate an existing SCT item by:
+      1. Reviewing the clinical vignette and three evaluation scenarios
+      2. Applying a different clinical guideline perspective
+      3. Selecting the most appropriate response option for each scenario as a baseline
+      4. Providing overall validation notes explaining your assessment
+    </purpose>
+    
+    <guideline_requirement>
+      CRITICAL: You MUST use a guideline DIFFERENT from the one used to create this item.
+      The creation guideline is: {{CREATION_GUIDELINE}}
+      Available guidelines: american, british, european
+      You will use: {{VALIDATOR_GUIDELINE}}
+    </guideline_requirement>
+  </validation_task>
+
+  <sct_item_to_validate>
+    <domain>{{DOMAIN}}</domain>
+    <creation_guideline>{{CREATION_GUIDELINE}}</creation_guideline>
+    <vignette>{{VIGNETTE}}</vignette>
+    {{AUTHOR_NOTES_SECTION}}
+    
+    <questions>
+      {{QUESTIONS_SECTION}}
+    </questions>
+  </sct_item_to_validate>
+
+  <clinical_guideline_context>
+    The following clinical guideline should inform your validation:
+    
+    {{VALIDATOR_GUIDELINE_CONTENT}}
+    
+    Use this guideline as reference to evaluate the clinical reasoning in the SCT item.
+    Consider how this guideline perspective might differ from the creation guideline.
+  </clinical_guideline_context>
+
+  <validation_instructions>
+    <step1>
+      Review the clinical vignette carefully. Understand the patient presentation, context, and clinical uncertainty.
+    </step1>
+    
+    <step2>
+      For EACH of the three scenarios (diagnosis, management, followup):
+      - Read the hypothesis and new information
+      - Apply the {{VALIDATOR_GUIDELINE}} guideline perspective
+      - Determine how the new information affects the hypothesis/plan
+      - Select the MOST APPROPRIATE option from: +2, +1, 0, -1, -2
+    </step2>
+    
+    <step3>
+      Provide overall validation notes explaining:
+      - Your overall assessment of the item's clinical validity
+      - How the {{VALIDATOR_GUIDELINE}} guideline perspective influenced your responses
+      - Any notable differences from the creation guideline approach
+      - Overall quality and clinical reasoning assessment
+    </step3>
+  </validation_instructions>
+
+  <likert_scale_interpretation>
+    <diagnosis>
+      +2: Much more likely / Confirmed
+      +1: More likely
+       0: Neither more nor less likely
+      -1: Less likely
+      -2: Much less likely / Ruled out
+    </diagnosis>
+    <management>
+      +2: Much more appropriate / Essential
+      +1: More appropriate
+       0: Neither more nor less appropriate
+      -1: Less appropriate
+      -2: Much less appropriate / Contraindicated
+    </management>
+    <followup>
+      +2: Much more appropriate / Essential
+      +1: More appropriate
+       0: Neither more nor less appropriate
+      -1: Less appropriate
+      -2: Much less appropriate / Inappropriate
+    </followup>
+  </likert_scale_interpretation>
+
+  <output_requirements>
+    <requirement>Select exactly ONE option (+2, +1, 0, -1, or -2) for EACH of the 3 questions</requirement>
+    <requirement>Responses must be in order: diagnosis, management, followup</requirement>
+    <requirement>validator_notes: Overall validation assessment (max 500 characters)</requirement>
+    <requirement>MUST specify which guideline you used for validation (validator_guideline)</requirement>
+  </output_requirements>
+
+  <output_format>
+    Generate a JSON with:
+    - validator_guideline: The guideline you used for validation (must be different from creation guideline)
+    - validator_notes: Your overall validation assessment and notes (max 500 characters)
+    - validator_responses: Array of exactly 3 objects, each with:
+      * question_type: "diagnosis" | "management" | "followup"
+      * selected_option: "+2" | "+1" | "0" | "-1" | "-2"
+  </output_format>
+
+  <critical_reminders>
+    <reminder>You are using {{VALIDATOR_GUIDELINE}} guideline, which is DIFFERENT from the creation guideline ({{CREATION_GUIDELINE}})</reminder>
+    <reminder>Select ONE option per question based on how the new information affects the hypothesis/plan</reminder>
+    <reminder>Your responses serve as a baseline for evaluating the SCT item's clinical reasoning</reminder>
+    <reminder>Consider guideline-specific differences in clinical practice patterns</reminder>
+  </critical_reminders>
+</prompt>
